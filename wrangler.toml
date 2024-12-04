@@ -3,5 +3,10 @@ name = "xion-assets"
 pages_build_output_dir = "./src"
 compatibility_date = "2024-12-04"
 
+# not supported in pages
+# routes = [
+#   { pattern = "assets.xion.burnt.com", custom_domain = true }
+# ]
+
 [env]
 production = { }
