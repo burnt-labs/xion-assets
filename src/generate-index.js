@@ -18,7 +18,7 @@ function getJsonFiles(dir, basePath = '') {
 
     if (file.isDirectory()) {
       fileList = fileList.concat(getJsonFiles(fullPath, relativePath));
-    } else if (file.isFile() && file.name.endsWith('.json')) {
+    } else if (file.isFile() && file.name.endsWith('.json') && ! file.name.endsWith('schema.json')) {
       fileList.push(relativePath);
     }
   });
