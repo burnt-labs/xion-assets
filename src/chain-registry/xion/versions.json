@@ -150,7 +150,7 @@
         },
         {
             "name": "v14",
-            "tag": "v14.1.0",
+            "tag": "v14.1.1",
             "height": 3586500,
             "proposal": 11,
             "consensus": {
@@ -165,7 +165,7 @@
             },
             "sdk": {
                 "type": "cosmos",
-                "version": "v0.50.10"
+                "version": "v0.50.11"
             },
             "language": {
                 "type": "go",
