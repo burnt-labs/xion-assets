@@ -190,6 +190,308 @@
         "burnt",
         "mainnet"
       ]
+    },
+    {
+      "name": "xiontestnet",
+      "path": "xiontestnet",
+      "chain_name": "xiontestnet",
+      "network_type": "testnet",
+      "pretty_name": "Xion Testnet",
+      "chain_id": "xion-testnet-1",
+      "status": "live",
+      "bech32_prefix": "xion",
+      "slip44": 118,
+      "symbol": "XION",
+      "display": "XION",
+      "denom": "uxion",
+      "decimals": 6,
+      "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt.png",
+      "website": "https://burnt.com",
+      "height": 11688228,
+      "best_apis": {
+        "rest": [
+          {
+            "address": "https://burnt-testnet-api.itrocket.net/",
+            "provider": "ITRocket"
+          },
+          {
+            "address": "https://xion-testnet-api.polkachu.com/",
+            "provider": "Polkachu"
+          },
+          {
+            "address": "https://api.xion-testnet-1.burnt.com/",
+            "provider": "🔥BurntLabs🔥"
+          }
+        ],
+        "rpc": [
+          {
+            "address": "https://burnt-testnet-rpc.itrocket.net/",
+            "provider": "ITRocket"
+          },
+          {
+            "address": "https://xion-testnet-rpc.polkachu.com/",
+            "provider": "Polkachu"
+          },
+          {
+            "address": "https://rpc.xion-testnet-1.burnt.com/",
+            "provider": "🔥BurntLabs🔥"
+          }
+        ]
+      },
+      "proxy_status": {
+        "rest": true,
+        "rpc": true
+      },
+      "versions": {
+        "application_version": "v14.0.0",
+        "cosmos_sdk_version": "v0.50.10",
+        "tendermint_version": "0.38.12"
+      },
+      "explorers": [
+        {
+          "url": "https://explorer.burnt.com/xion-testnet-1",
+          "tx_page": "https://explorer.burnt.com/xion-testnet-1/tx/${txHash}",
+          "account_page": "https://explorer.burnt.com/xion-testnet-1/account/${accountAddress}"
+        },
+        {
+          "kind": "ITRocket",
+          "url": "https://testnet.itrocket.net/burnt",
+          "tx_page": "https://testnet.itrocket.net/burnt/tx/${txHash}",
+          "account_page": "https://testnet.itrocket.net/burnt/account/${accountAddress}"
+        }
+      ],
+      "params": {
+        "authz": true,
+        "actual_block_time": 4.622633999824524,
+        "actual_blocks_per_year": 6822084.552053464,
+        "current_block_height": "11688227",
+        "unbonding_time": 181440,
+        "max_validators": 100,
+        "staking": {
+          "unbonding_time": "181440s",
+          "max_validators": 100,
+          "max_entries": 7,
+          "historical_entries": 10000,
+          "bond_denom": "uxion",
+          "min_commission_rate": "0.000000000000000000"
+        },
+        "slashing": {
+          "signed_blocks_window": "5000",
+          "min_signed_per_window": "0.500000000000000000",
+          "downtime_jail_duration": "600s",
+          "slash_fraction_double_sign": "0.005000000000000000",
+          "slash_fraction_downtime": "0.000100000000000000"
+        },
+        "community_tax": 0.02,
+        "distribution": {
+          "community_tax": "0.020000000000000000",
+          "base_proposer_reward": "0.000000000000000000",
+          "bonus_proposer_reward": "0.000000000000000000",
+          "withdraw_addr_enabled": true
+        },
+        "bonded_tokens": "39830389285281"
+      },
+      "prices": {
+        "coingecko": {
+          "usdc": {
+            "usd": 1
+          }
+        }
+      },
+      "assets": [
+        {
+          "name": "xion",
+          "description": "The native staking token of the Xion network.",
+          "symbol": "XION",
+          "denom": "uxion",
+          "decimals": 6,
+          "base": {
+            "denom": "uxion",
+            "exponent": 0,
+            "aliases": [
+              "microxion"
+            ]
+          },
+          "display": {
+            "denom": "XION",
+            "exponent": 6,
+            "aliases": [
+              "xion"
+            ]
+          },
+          "denom_units": [
+            {
+              "denom": "uxion",
+              "exponent": 0,
+              "aliases": [
+                "microxion"
+              ]
+            },
+            {
+              "denom": "XION",
+              "exponent": 6,
+              "aliases": [
+                "xion"
+              ]
+            }
+          ],
+          "logo_URIs": {
+            "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
+          },
+          "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
+        },
+        {
+          "name": "Axelar AXL Token",
+          "symbol": "AXL",
+          "denom": "ibc/33517D439F5E545A1AAB148FAE43AAE17CF68FFB9BC97AE0048A3E3B64518C58",
+          "decimals": 6,
+          "base": {
+            "denom": "ibc/33517D439F5E545A1AAB148FAE43AAE17CF68FFB9BC97AE0048A3E3B64518C58",
+            "exponent": 0,
+            "aliases": [
+              "uaxl"
+            ]
+          },
+          "display": {
+            "denom": "axl",
+            "exponent": 6
+          },
+          "denom_units": [
+            {
+              "denom": "ibc/33517D439F5E545A1AAB148FAE43AAE17CF68FFB9BC97AE0048A3E3B64518C58",
+              "exponent": 0,
+              "aliases": [
+                "uaxl"
+              ]
+            },
+            {
+              "denom": "axl",
+              "exponent": 6
+            }
+          ],
+          "logo_URIs": {
+            "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelar/images/axl.png",
+            "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelar/images/axl.svg"
+          },
+          "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelar/images/axl.svg"
+        },
+        {
+          "name": "Osmosis OSMO Token",
+          "symbol": "OSMO",
+          "denom": "ibc/484532EB74866F3FB8A71F909F7B1B470FE2E66313DA0A1F9EE5B7C5C046D195",
+          "decimals": 6,
+          "base": {
+            "denom": "ibc/484532EB74866F3FB8A71F909F7B1B470FE2E66313DA0A1F9EE5B7C5C046D195",
+            "exponent": 0,
+            "aliases": [
+              "uosmo"
+            ]
+          },
+          "display": {
+            "denom": "osmo",
+            "exponent": 6
+          },
+          "denom_units": [
+            {
+              "denom": "ibc/484532EB74866F3FB8A71F909F7B1B470FE2E66313DA0A1F9EE5B7C5C046D195",
+              "exponent": 0,
+              "aliases": [
+                "uosmo"
+              ]
+            },
+            {
+              "denom": "osmo",
+              "exponent": 6
+            }
+          ],
+          "logo_URIs": {
+            "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png",
+            "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"
+          },
+          "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"
+        },
+        {
+          "name": "Noble USDC Token",
+          "symbol": "USDC",
+          "denom": "ibc/57097251ED81A232CE3C9D899E7C8096D6D87EF84BA203E12E424AA4C9B57A64",
+          "decimals": 6,
+          "coingecko_id": "usd-coin",
+          "base": {
+            "denom": "ibc/57097251ED81A232CE3C9D899E7C8096D6D87EF84BA203E12E424AA4C9B57A64",
+            "exponent": 0,
+            "aliases": [
+              "uusdc"
+            ]
+          },
+          "display": {
+            "denom": "usdc",
+            "exponent": 6
+          },
+          "denom_units": [
+            {
+              "denom": "ibc/57097251ED81A232CE3C9D899E7C8096D6D87EF84BA203E12E424AA4C9B57A64",
+              "exponent": 0,
+              "aliases": [
+                "uusdc"
+              ]
+            },
+            {
+              "denom": "usdc",
+              "exponent": 6
+            }
+          ],
+          "logo_URIs": {
+            "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/usdc.png",
+            "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/usdc.svg"
+          },
+          "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/usdc.svg",
+          "prices": {
+            "coingecko": {
+              "usd": 1
+            }
+          }
+        },
+        {
+          "name": "Injective INJ token",
+          "symbol": "INJ",
+          "denom": "ibc/05314A48723E06A1B1B666066B6BEC89F3708E8854DF2E5E9193387AA9653036",
+          "decimals": 18,
+          "base": {
+            "denom": "ibc/05314A48723E06A1B1B666066B6BEC89F3708E8854DF2E5E9193387AA9653036",
+            "exponent": 0,
+            "aliases": [
+              "inj"
+            ]
+          },
+          "display": {
+            "denom": "INJ",
+            "exponent": 18
+          },
+          "denom_units": [
+            {
+              "denom": "ibc/05314A48723E06A1B1B666066B6BEC89F3708E8854DF2E5E9193387AA9653036",
+              "exponent": 0,
+              "aliases": [
+                "inj"
+              ]
+            },
+            {
+              "denom": "INJ",
+              "exponent": 18
+            }
+          ],
+          "logo_URIs": {
+            "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/injective/images/inj.png",
+            "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/injective/images/inj.svg"
+          },
+          "image": "https://raw.githubusercontent.com/cosmos/chain-registry/master/injective/images/inj.svg"
+        }
+      ],
+      "keywords": [
+        "xion",
+        "burnt",
+        "testnet"
+      ]
     }
   ]
 }
