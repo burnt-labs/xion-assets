@@ -75,7 +75,7 @@
         "rpc": true
       },
       "versions": {
-        "application_version": "14.0.0",
+        "application_version": "14.1.1",
         "cosmos_sdk_version": "v0.50.10",
         "tendermint_version": "0.38.12"
       },
@@ -211,19 +211,23 @@
       "best_apis": {
         "rest": [
           {
+            "address": "https://api.xion-testnet-1.burnt.com/",
+            "provider": "🔥BurntLabs🔥"
+          },
+          {
             "address": "https://burnt-testnet-api.itrocket.net/",
             "provider": "ITRocket"
           },
           {
             "address": "https://xion-testnet-api.polkachu.com/",
             "provider": "Polkachu"
-          },
-          {
-            "address": "https://api.xion-testnet-1.burnt.com/",
-            "provider": "🔥BurntLabs🔥"
           }
         ],
         "rpc": [
+          {
+            "address": "https://rpc.xion-testnet-1.burnt.com/",
+            "provider": "🔥BurntLabs🔥"
+          },
           {
             "address": "https://burnt-testnet-rpc.itrocket.net/",
             "provider": "ITRocket"
@@ -231,10 +235,6 @@
           {
             "address": "https://xion-testnet-rpc.polkachu.com/",
             "provider": "Polkachu"
-          },
-          {
-            "address": "https://rpc.xion-testnet-1.burnt.com/",
-            "provider": "🔥BurntLabs🔥"
           }
         ]
       },
@@ -243,7 +243,7 @@
         "rpc": true
       },
       "versions": {
-        "application_version": "v14.0.0",
+        "application_version": "v14.1.1",
         "cosmos_sdk_version": "v0.50.10",
         "tendermint_version": "0.38.12"
       },
