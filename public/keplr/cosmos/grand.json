@@ -1,0 +1,68 @@
+{
+  "chainId": "grand-1",
+  "chainName": "Grand",
+  "rpc": "https://noble-testnet-rpc.polkachu.com",
+  "rest": "https://noble-testnet-api.polkachu.com",
+  "nodeProvider": {
+    "name": "Polkachu",
+    "email": "hello@polkachu.com",
+    "website": "https://polkachu.com"
+  },
+  "chainSymbolImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/chain.png",
+  "bip44": {
+    "coinType": 118
+  },
+  "bech32Config": {
+    "bech32PrefixAccAddr": "noble",
+    "bech32PrefixAccPub": "noblepub",
+    "bech32PrefixValAddr": "noblevaloper",
+    "bech32PrefixValPub": "noblevaloperpub",
+    "bech32PrefixConsAddr": "noblevalcons",
+    "bech32PrefixConsPub": "noblevalconspub"
+  },
+  "currencies": [
+    {
+      "coinDenom": "USDC",
+      "coinMinimalDenom": "uusdc",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/uusdc.png"
+    },
+    {
+      "coinDenom": "USDY",
+      "coinMinimalDenom": "ausdy",
+      "coinDecimals": 18,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/ausdy.png"
+    },
+    {
+      "coinDenom": "USYC",
+      "coinMinimalDenom": "uusyc",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/uusyc.png"
+    },
+    {
+      "coinDenom": "EURe",
+      "coinMinimalDenom": "ueure",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/ueure.png"
+    },
+    {
+      "coinDenom": "LOVE",
+      "coinMinimalDenom": "ulove",
+      "coinDecimals": 6
+    }
+  ],
+  "feeCurrencies": [
+    {
+      "coinDenom": "USDC",
+      "coinMinimalDenom": "uusdc",
+      "coinDecimals": 6,
+      "coinImageUrl": "https://raw.githubusercontent.com/chainapsis/keplr-chain-registry/main/images/grand/uusdc.png",
+      "gasPriceStep": {
+        "low": 0.1,
+        "average": 0.1,
+        "high": 0.2
+      }
+    }
+  ],
+  "features": []
+}
