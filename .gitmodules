@@ -1,0 +1,3 @@
+[submodule "xion-explorer"]
+	path = xion-explorer
+	url = https://github.com/burnt-labs/xion-explorer.git
