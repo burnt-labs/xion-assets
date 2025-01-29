@@ -8,3 +8,8 @@
 	url = https://github.com/burnt-labs/chain-registry.git
 	shallow = true
 	branch = xion/main
+[submodule "keplr-chain-registry"]
+	path = sources/keplr
+	url = https://github.com/burnt-labs/keplr-chain-registry.git
+	shallow = true
+	branch = xion/main
