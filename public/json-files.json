@@ -19,6 +19,7 @@
   "/chain-registry/xion/chain.json",
   "/chain-registry/xion/versions.json",
   "/keplr/cosmos/xion-mainnet.json",
+  "/keplr/cosmos/xion-testnet-2.json",
   "/keplr/cosmos/xion-testnet.json",
   "/xion-explorer/chains/mainnet/xion-mainnet-1.json",
   "/xion-explorer/chains/mainnet/xion-testnet-1.json",
