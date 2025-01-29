@@ -1,0 +1,12 @@
+[submodule "sources/keplr"]
+	path = sources/keplr
+	url = https://github.com/burnt-labs/keplr-chain-registry.git
+	shallow = true
+[submodule "sources/chain-registry"]
+	path = sources/chain-registry
+	url = https://github.com/burnt-labs/chain-registry.git
+	shallow = true
+[submodule "sources/xion-explorer"]
+	path = sources/xion-explorer
+	url = https://github.com/burnt-labs/chain-registry.git
+	shallow = true
