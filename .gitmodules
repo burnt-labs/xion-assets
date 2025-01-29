@@ -1,3 +1,6 @@
 [submodule "xion-explorer"]
-	path = xion-explorer
+	path = public/xion-explorer
 	url = https://github.com/burnt-labs/xion-explorer.git
+[submodule "chain-registry"]
+	path = public/chain-registry
+	url = https://github.com/burnt-labs/chain-registry.git
