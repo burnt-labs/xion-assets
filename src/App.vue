@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 
 const jsonfiles = ref([]);
 
@@ -19,29 +19,50 @@ const splitfilename = (file) => {
   return { dirname, basename };
 };
 
+const groupedFiles = computed(() => {
+  const groups = {};
+  jsonfiles.value.forEach(file => {
+    const { dirname, basename } = splitfilename(file);
+    if (!groups[dirname]) {
+      groups[dirname] = [];
+    }
+    groups[dirname].push({ file, basename });
+  });
+  return groups;
+});
+
 onMounted(fetchjsonfiles);
 </script>
 
 <template>
   <div>
-    <h1>json files in public directory</h1>
-    <ul>
-      <li v-for="file in jsonfiles" :key="file">
-        <a :href="file" target="_blank">
-          <span class="muted">{{ splitfilename(file).dirname }}/</span>
-          <span class="bright">{{ splitfilename(file).basename }}</span>
-        </a>
-      </li>
-    </ul>
+    <h1>XION Assets</h1>
+    <div class="file-groups">
+      <div v-for="(files, dirname) in groupedFiles" :key="dirname" class="file-group">
+        <h2 class="muted">{{ dirname || 'Root' }}</h2>
+        <ul>
+          <li v-for="file in files" :key="file.file">
+            <a :href="file.file" target="_blank" class="bright">{{ file.basename }}</a>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
 <style>
 body {
   font-family: arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 100vh;
+  margin: 0;
 }
 
 ul {
+  max-width: 100%;
+  overflow-wrap: break-word;
   padding-left: 0;
 }
 
@@ -51,11 +72,25 @@ li {
 
 .muted {
   color: #467eba;
-  /* muted blue color for dirname */
+  font-size: 1em;
+  /* same size as links */
+  text-align: left;
 }
 
 .bright {
   color: #00ff00;
   /* terminal green color for basename */
+}
+
+.file-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.file-group {
+  flex: 1 1 300px;
+  /* Adjust the width as needed */
+  min-width: 300px;
 }
 </style>
