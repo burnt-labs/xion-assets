@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "node generate-json-list.js",
+    "prebuild": "node generate-list.js",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview"
   },
