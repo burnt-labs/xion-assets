@@ -1,9 +1,0 @@
-[submodule "xion-explorer"]
-	path = sources/xion-explorer
-	url = https://github.com/burnt-labs/xion-explorer.git
-[submodule "chain-registry"]
-	path = sources/chain-registry
-	url = https://github.com/burnt-labs/chain-registry.git
-[submodule "sources/keplr"]
-	path = sources/keplr
-	url = https://github.com/burnt-labs/keplr-chain-registry.git
