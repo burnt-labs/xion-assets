@@ -1,10 +1,15 @@
 [submodule "xion-explorer"]
-	path = public/xion-explorer
+	path = sources/xion-explorer
 	url = https://github.com/burnt-labs/xion-explorer.git
 	shallow = true
 	branch = xion/main
 [submodule "chain-registry"]
-	path = public/chain-registry
+	path = sources/chain-registry
 	url = https://github.com/burnt-labs/chain-registry.git
+	shallow = true
+	branch = xion/main
+[submodule "keplr-chain-registry"]
+	path = sources/keplr
+	url = https://github.com/burnt-labs/keplr-chain-registry.git
 	shallow = true
 	branch = xion/main
