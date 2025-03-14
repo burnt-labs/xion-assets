@@ -52,12 +52,24 @@ const initializeGitSubmodules = async (sourcesDir) => {
     }));
 };
 
+// Utility function to get the base directory
+const getBaseDir = () => {
+    // Check if we're running in a module context
+    if (import.meta.url) {
+        // For module-based execution, resolve based on import.meta.url
+        const filename = fileURLToPath(import.meta.url);
+        return join(filename, '..'); // Get the parent directory
+    } else {
+        // For traditional script execution, use process.cwd() for current working directory
+        return process.cwd();
+    }
+};
+
 const generateJsonFileList = async () => {
-    const filename = fileURLToPath(import.meta.url);
-    const dirname = join(filename, '..');
-    const publicDir = join(dirname, "public");
+    const dirname = getBaseDir(); // Dynamically determine the base directory
+    const publicDir = join(dirname, "public");  // Point to public directory
     const outputFile = join(publicDir, "json-files.json");
-    const sourcesDir = join(dirname, "sources");
+    const sourcesDir = join(dirname, "sources");  // Point to sources directory
 
     // Initialize git submodules and set sparse checkout
     await initializeGitSubmodules(sourcesDir);
@@ -71,4 +83,3 @@ const generateJsonFileList = async () => {
 
 // Execute the function
 generateJsonFileList();
-

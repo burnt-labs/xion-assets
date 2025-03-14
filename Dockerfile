@@ -13,8 +13,9 @@ RUN set -eux \
   && npm install
 
 COPY . .
-
 # TODO: run generate-list.js, need fix for recusive submodules
+#RUN node generate-list.js
+
 RUN set -eux \
   && npx vue-tsc -b && npx vite build
 
