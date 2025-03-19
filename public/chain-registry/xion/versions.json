@@ -221,8 +221,8 @@
         },
         {
             "name": "v17",
-            "tag": "v17.0.0",
-            "recommended_version": "v17.0.0",
+            "tag": "v17.1.0",
+            "recommended_version": "v17.1.0",
             "height": 5942000,
             "proposal": 24,
             "language": {
@@ -237,7 +237,7 @@
             },
             "sdk": {
                 "type": "cosmos",
-                "version": "v0.50.12"
+                "version": "v0.50.13"
             },
             "consensus": {
                 "type": "cometbft",
@@ -249,7 +249,7 @@
             },
             "ibc": {
                 "type": "go",
-                "version": "v8.6.1"
+                "version": "v8.7.0"
             }
         }
     ]
