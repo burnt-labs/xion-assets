@@ -61,32 +61,74 @@
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
     },
     {
-      "base": "ibc/05007A23A23D8B3D286EC4A541189D86C0B76FD769008E4C85EBE977DDA437D3",
-      "symbol": "AXL",
-      "exponent": "6",
-      "coingecko_id": "axelar",
-      "logo": "https://images.ctfassets.net/mjqoq33y05of/6eCdgxArb4F62MPUb4hqnr/9f701bb72329dfffa0f0f43f2d8915b3/Axelar_Logo_Symbol_Black-min.png"
-    },
-    {
-      "base": "ibc/484532EB74866F3FB8A71F909F7B1B470FE2E66313DA0A1F9EE5B7C5C046D195",
+      "base": "ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B",
       "symbol": "OSMO",
       "exponent": "6",
       "coingecko_id": "osmosis",
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png"
     },
     {
-      "base": "ibc/05314A48723E06A1B1B666066B6BEC89F3708E8854DF2E5E9193387AA9653036",
-      "symbol": "INJ",
-      "exponent": "1",
-      "coingecko_id": "injective-protocol",
-      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/injective/images/inj.png"
-    },
-    {
-      "base": "ibc/57097251ED81A232CE3C9D899E7C8096D6D87EF84BA203E12E424AA4C9B57A64",
+      "base": "ibc/F082B65C88E4B6D5EF1DB243CDA1D331D002759E938A0F5CD3FFDC5D53B3E349",
       "symbol": "USDC",
       "exponent": "6",
       "coingecko_id": "usd-coin",
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/noble/images/USDCoin.png"
+    },
+    {
+      "base": "ibc/CC7B293B3F08EA7DB96AFD4765BD0C7F95ABD7ECEAF21C74F3ACCBF7CEFB6591",
+      "symbol": "OSMO",
+      "exponent": "6",
+      "coingecko_id": "osmosis",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png"
+    },
+    {
+      "base": "ibc/9463E39D230614B313B487836D13A392BD1731928713D4C8427A083627048DB3",
+      "symbol": "AXL",
+      "exponent": "6",
+      "coingecko_id": "axelar",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelar/images/axl.png"
+    },
+    {
+      "base": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
+      "symbol": "axlUSDC",
+      "exponent": "6",
+      "coingecko_id": "axlusdc",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/axlusdc.png"
+    },
+    {
+      "base": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+      "symbol": "axlUSDT",
+      "exponent": "6",
+      "coingecko_id": "tether",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/axlusdc.png"
+    },
+    {
+      "base": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+      "symbol": "axlDAI",
+      "exponent": "18",
+      "coingecko_id": "dai",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/axldai.png"
+    },
+    {
+      "base": "ibc/0000000000000000000000000000000000000000000000000000000000000000",
+      "symbol": "axlFRAX",
+      "exponent": "6",
+      "coingecko_id": "frax",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/axlfrax.png"
+    },
+    {
+      "base": "ibc/AAD7136DD626569C3DDE7C5F764968BB2E939875EFC568AE5712B62081850814",
+      "symbol": "axlWETH",
+      "exponent": "18",
+      "coingecko_id": "axlweth",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/weth.png"
+    },
+    {
+      "base": "ibc/E706A0C6CACB374ADC2BCF6A74FE1B260840FC822E45DCB776DEA962A57FED30",
+      "symbol": "axlARB",
+      "exponent": "18",
+      "coingecko_id": "arbitrum",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/arbitrum/images/arb.png"
     }
   ],
   "keplr_features": [
