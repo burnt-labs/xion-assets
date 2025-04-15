@@ -1,6 +1,6 @@
 {
   "chain_name": "xion-testnet-2",
-  "coingecko": "XION",
+  "coingecko": "xion-2",
   "network_type": "testnet",
   "rpc": [
     {
