@@ -13,3 +13,6 @@
 	url = https://github.com/burnt-labs/keplr-chain-registry.git
 	shallow = true
 	branch = xion/main
+[submodule "sources/chainlist"]
+	path = sources/chainlist
+	url = https://github.com/cosmostation/chainlist.git
