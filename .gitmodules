@@ -16,3 +16,5 @@
 [submodule "sources/chainlist"]
 	path = sources/chainlist
 	url = https://github.com/cosmostation/chainlist.git
+	shallow = true
+	branch = xion/main
