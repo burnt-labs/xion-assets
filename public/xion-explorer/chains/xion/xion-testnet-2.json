@@ -1,6 +1,6 @@
 {
   "chain_name": "xion-testnet-2",
-  "coingecko": "xion-2",
+  "coingecko": "xion",
   "network_type": "testnet",
   "rpc": [
     {
@@ -19,7 +19,7 @@
   "coin_type": "118",
   "min_tx_fee": "100",
   "addr_prefix": "xion",
-  "theme_color": "#161723",
+  "theme_color": "#ffaa4a",
   "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png",
   "assets": [
     {
@@ -44,12 +44,19 @@
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/noble/images/USDCoin.png"
     }
   ],
-  "faucet": {
-    "amount": "2000000uxion",
-    "ip_limit": "1",
-    "address_limit": "1",
-    "fees": "150uxion"
-  },
+  "features": [
+    "dashboard",
+    "governance",
+    "staking",
+    "blocks",
+    "tx",
+    "uptime",
+    "ibc",
+    "supply",
+    "parameters",
+    "consensus",
+    "cosmwasm"
+  ],
   "keplr_features": [
     "ibc-go",
     "ibc-transfer",

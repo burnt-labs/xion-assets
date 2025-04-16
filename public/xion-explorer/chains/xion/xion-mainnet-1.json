@@ -1,6 +1,6 @@
 {
   "chain_name": "xion-mainnet-1",
-  "coingecko": "xion-2",
+  "coingecko": "xion",
   "network_type": "mainnet",
   "rpc": [
     {
@@ -51,6 +51,7 @@
   "coin_type": "118",
   "min_tx_fee": "100",
   "addr_prefix": "xion",
+  "theme_color": "#96b325",
   "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png",
   "assets": [
     {
@@ -135,15 +136,28 @@
       "symbol": "ELYS",
       "exponent": "6",
       "coingecko_id": "elys",
-      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/kyve/images/kyve-token.png"
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/elys/images/elys.png"
     },
     {
       "base": "ibc/E706A0C6CACB374ADC2BCF6A74FE1B260840FC822E45DCB776DEA962A57FED30",
       "symbol": "axlARB",
       "exponent": "18",
       "coingecko_id": "arb",
-      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/kyve/images/kyve-token.png"
+      "logo": "https://github.com/burnt-labs/chain-registry/blob/master/_non-cosmos/arbitrum/images/arb.png"
     }
+  ],
+  "features": [
+    "dashboard",
+    "governance",
+    "staking",
+    "blocks",
+    "tx",
+    "uptime",
+    "ibc",
+    "supply",
+    "parameters",
+    "consensus",
+    "cosmwasm"
   ],
   "keplr_features": [
     "ibc-go",
