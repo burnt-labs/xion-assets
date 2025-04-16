@@ -2,6 +2,7 @@
   "/chain-registry/_IBC/axelar-xion.json",
   "/chain-registry/_IBC/elys-xion.json",
   "/chain-registry/_IBC/injective-xion.json",
+  "/chain-registry/_IBC/kyve-xion.json",
   "/chain-registry/_IBC/noble-xion.json",
   "/chain-registry/_IBC/osmosis-xion.json",
   "/chain-registry/_IBC/quicksilver-xion.json",
@@ -20,12 +21,12 @@
   "/chain-registry/xion/assetlist.json",
   "/chain-registry/xion/chain.json",
   "/chain-registry/xion/versions.json",
+  "/chainlist/chain/xion/assets_2.json",
+  "/chainlist/chain/xion/param_2.json",
+  "/chainlist/chain/xion-testnet/assets_2.json",
+  "/chainlist/chain/xion-testnet/param_2.json",
   "/keplr/cosmos/xion-mainnet.json",
   "/keplr/cosmos/xion-testnet.json",
-  "/xion-explorer/chains/devnet/xion-devnet.json",
-  "/xion-explorer/chains/mainnet/xion-mainnet-1.json",
-  "/xion-explorer/chains/mainnet/xion-testnet-1.json",
-  "/xion-explorer/chains/mainnet/xion-testnet-2.json",
-  "/xion-explorer/chains/testnet/xion-testnet-1.json",
-  "/xion-explorer/chains/testnet/xion-testnet-2.json"
+  "/xion-explorer/chains/xion/xion-mainnet-1.json",
+  "/xion-explorer/chains/xion/xion-testnet-2.json"
 ]
