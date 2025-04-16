@@ -92,7 +92,11 @@
       "base": "ibc/6490A7EAB61059BFC1CDDEB05917DD70BDF3A611654162A1A47DB930D40D8AF4",
       "symbol": "axlUSDC",
       "exponent": "6",
+<<<<<<< HEAD
       "coingecko_id": "usd-coin",
+=======
+      "coingecko_id": "axlusdc",
+>>>>>>> main
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/axlusdc.png"
     },
     {
@@ -124,6 +128,7 @@
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/axelat/images/weth.png"
     },
     {
+<<<<<<< HEAD
       "base": "ibc/056EA54C3D9B49B3C0418955A27980A91DD4F210914BFE240A1DB19E27895ECA",
       "symbol": "KYVE",
       "exponent": "6",
@@ -143,6 +148,13 @@
       "exponent": "18",
       "coingecko_id": "arb",
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/kyve/images/kyve-token.png"
+=======
+      "base": "ibc/E706A0C6CACB374ADC2BCF6A74FE1B260840FC822E45DCB776DEA962A57FED30",
+      "symbol": "axlARB",
+      "exponent": "18",
+      "coingecko_id": "arbitrum",
+      "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/arbitrum/images/arb.png"
+>>>>>>> main
     }
   ],
   "keplr_features": [
