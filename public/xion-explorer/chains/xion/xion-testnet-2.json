@@ -1,17 +1,34 @@
 {
   "chain_name": "xion-testnet-2",
+  "registry_name": "xiontestnet2",
   "coingecko": "xion",
   "network_type": "testnet",
   "rpc": [
     {
       "address": "https://rpc.xion-testnet-2.burnt.com",
       "provider": "🔥BurntLabs🔥"
+    },
+    {
+      "address": "https://xion-testnet-rpc.polkachu.com",
+      "provider": "Polkachu"
+    },
+    {
+      "address": "https://burnt-testnet-rpc.itrocket.net",
+      "provider": "ITRocket"
     }
   ],
   "api": [
     {
       "address": "https://api.xion-testnet-2.burnt.com",
       "provider": "🔥BurntLabs🔥"
+    },
+    {
+      "address": "https://xion-testnet-api.polkachu.com",
+      "provider": "Polkachu"
+    },
+    {
+      "address": "https://burnt-testnet-api.itrocket.net",
+      "provider": "ITRocket"
     }
   ],
   "snapshot_provider": "",
