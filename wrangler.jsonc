@@ -6,11 +6,22 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "xion-assets",
 	"compatibility_date": "2025-05-07",
-	"main": "server/index.ts",
+	"main": "./dist/xion_assets/index.js",
+	"routes": [
+		{
+			"pattern": "xion-assets.burnt.com",
+			"custom_domain": true,
+		}
+	],
 	"assets": {
 		"not_found_handling": "single-page-application",
 		"binding": "ASSETS",
 		"directory": "./dist"
+	},
+	"build": {
+		"command": "npm run build",
+		"watch_dir": "*",
+
 	},
 	"observability": {
 		"enabled": true
