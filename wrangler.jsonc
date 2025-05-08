@@ -9,7 +9,7 @@
 	"main": "./dist/xion_assets/index.js",
 	"routes": [
 		{
-			"pattern": "xion-assets.burnt.com",
+			"pattern": "xion.assets.burnt.com",
 			"custom_domain": true,
 		}
 	],
