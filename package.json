@@ -1,23 +1,34 @@
 {
-  "name": "assets",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "prebuild": "node generate-list.js",
-    "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "simple-git": "^3.27.0",
-    "vue": "^3.5.13"
-  },
-  "devDependencies": {
-    "@vitejs/plugin-vue": "^5.2.1",
-    "@vue/tsconfig": "^0.7.0",
-    "typescript": "~5.6.2",
-    "vite": "^6.2.4",
-    "vue-tsc": "^2.2.0"
-  }
+	"name": "xion-assets-worker",
+	"version": "0.0.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "vite",
+		"prebuild": "node scripts/generate-list.js",
+		"build": "run-p type-check \"build-only {@}\" --",
+		"preview": "npm run build && wrangler dev",
+		"build-only": "vite build",
+		"type-check": "vue-tsc --build",
+		"deploy": "npm run build && wrangler deploy",
+		"cf-typegen": "wrangler types"
+	},
+	"dependencies": {
+		"simple-git": "^3.27.0",
+		"vue": "^3.5.13",
+		"vue-router": "^4.5.0"
+	},
+	"devDependencies": {
+		"@cloudflare/vite-plugin": "^1.1.1",
+		"@tsconfig/node22": "^22.0.1",
+		"@types/node": "^22.14.0",
+		"@vitejs/plugin-vue": "^5.2.3",
+		"@vue/tsconfig": "^0.7.0",
+		"npm-run-all2": "^7.0.2",
+		"typescript": "~5.8.0",
+		"vite": "^6.2.4",
+		"vite-plugin-vue-devtools": "^7.7.2",
+		"vue-tsc": "^2.2.8",
+		"wrangler": "^4.14.3"
+	}
 }
