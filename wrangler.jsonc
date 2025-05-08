@@ -9,8 +9,8 @@
 	"main": "server/index.ts",
 	"routes": [
 		{
-			"pattern": "assets.xion.burnt.com",
-			"custom_domain": true,
+			"pattern": "assets.xion.burnt.com/*",
+			"custom_domain": false,
 		},
 	],
 	"assets": {
