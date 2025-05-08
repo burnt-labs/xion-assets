@@ -1,4 +1,5 @@
-<script setup>
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
 import { ref, onMounted, computed } from "vue";
 
 const jsonfiles = ref([]);
@@ -12,7 +13,7 @@ const fetchjsonfiles = async () => {
   }
 };
 
-const splitfilename = (file) => {
+const splitfilename = (file: string) => {
   const parts = file.split('/');
   const basename = parts.pop();
   const dirname = parts.join('/');
@@ -20,7 +21,7 @@ const splitfilename = (file) => {
 };
 
 const groupedFiles = computed(() => {
-  const groups = {};
+  const groups: Record<string, any> = {};
   jsonfiles.value.forEach(file => {
     const { dirname, basename } = splitfilename(file);
     if (!groups[dirname]) {
@@ -32,6 +33,7 @@ const groupedFiles = computed(() => {
 });
 
 onMounted(fetchjsonfiles);
+
 </script>
 
 <template>
@@ -48,9 +50,10 @@ onMounted(fetchjsonfiles);
       </div>
     </div>
   </div>
+  <RouterView />
 </template>
 
-<style>
+<style scoped>
 body {
   font-family: arial, sans-serif;
   display: flex;

@@ -54,7 +54,7 @@ const initializeGitSubmodules = async (sourcesDir) => {
 
 const generateJsonFileList = async () => {
     const filename = fileURLToPath(import.meta.url);
-    const dirname = join(filename, '..');
+    const dirname = join(filename, '../..');
     const publicDir = join(dirname, "public");
     const outputFile = join(publicDir, "json-files.json");
     const sourcesDir = join(dirname, "sources");
