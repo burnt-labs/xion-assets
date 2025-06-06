@@ -1,0 +1,157 @@
+name: Update Chain Registry Versions
+
+on:
+  workflow_call:
+    inputs:
+      version_tag:
+        required: true
+        type: string
+        description: "The version tag (e.g. v18.0.1)"
+        #default: "v19.0.0"
+      cosmos_sdk_version:
+        required: true
+        type: string
+        description: "Cosmos SDK version"
+        #default: "v0.50.13"
+      go_version:
+        required: true
+        type: string
+        description: "Go version"
+        #default: "v1.23"
+      consensus_version:
+        required: true
+        type: string
+        description: "CometBFT version"
+        #default: "v0.38.17"
+      cosmwasm_version:
+        required: true
+        type: string
+        description: "CosmWasm version"
+        #default: "v0.54.0"
+      ibc_version:
+        required: true
+        type: string
+        description: "IBC-Go version"
+        #default: "v8.7.0"
+      height:
+        required: false
+        type: string
+        description: "Upgrade height"
+        #default: "2500000"
+      proposal:
+        required: false
+        type: string
+        description: "Proposal ID"
+        #default: "18"
+      checksum_darwin_amd64:
+        required: true
+        type: string
+        description: "SHA256 checksum for darwin/amd64 binary"
+        #default: ".........."
+      checksum_darwin_arm64:
+        required: true
+        type: string
+        description: "SHA256 checksum for darwin/arm64 binary"
+        #default: ".........."
+      checksum_linux_amd64:
+        required: true
+        type: string
+        description: "SHA256 checksum for linux/amd64 binary"
+        #default: ".........."
+      checksum_linux_arm64:
+        required: true
+        type: string
+        description: "SHA256 checksum for linux/arm64 binary"
+        #default: ".........."
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Extract version name
+        id: version_info
+        run: |
+          # Extract version name (e.g. v18 from v18.0.1)
+          VERSION_NAME=$(echo ${{ inputs.version_tag }} | cut -d. -f1)
+          echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Update versions.json
+        id: update_json
+        run: |
+          # Read the current file
+          VERSIONS_FILE="public/chain-registry/testnets/xiontestnet2/versions.json"
+          
+          # Create new version entry
+          NEW_VERSION=$(cat << EOF
+          {
+            "name": "${{ steps.version_info.outputs.version_name }}",
+            "tag": "${{ inputs.version_tag }}",
+            "recommended_version": "${{ inputs.version_tag }}",
+            "compatible_versions": [
+              "TODO inputs.version_tag -1 TODO",
+              "${{ inputs.version_tag }}"
+            ],
+            "height": ${{ inputs.height }},
+            "proposal": ${{ inputs.proposal }},
+            "language": {
+              "type": "go",
+              "version": "${{ inputs.go_version }}"
+            },
+            "binaries": {
+              "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_darwin_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_amd64 }}",
+              "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_darwin_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_arm64 }}",
+              "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_linux_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_amd64 }}",
+              "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_linux_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_arm64 }}"
+            },
+            "sdk": {
+              "type": "cosmos",
+              "version": "${{ inputs.cosmos_sdk_version }}"
+            },
+            "consensus": {
+              "type": "cometbft",
+              "version": "${{ inputs.consensus_version }}"
+            },
+            "cosmwasm": {
+              "version": "${{ inputs.cosmwasm_version }}",
+              "enabled": true
+            },
+            "ibc": {
+              "type": "go",
+              "version": "${{ inputs.ibc_version }}"
+            }
+          }
+          EOF
+          )
+
+          # Add new version to the versions array
+          jq --argjson new "$NEW_VERSION" '.versions += [$new]' "$VERSIONS_FILE" > temp.json
+          mv temp.json "$VERSIONS_FILE"
+
+          cat "$VERSIONS_FILE"
+
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v6
+      #   with:
+      #     commit-message: "feat: add ${{ inputs.version_tag }} to versions.json"
+      #     title: "feat: add ${{ inputs.version_tag }} to chain registry"
+      #     body: |
+      #       Updates versions.json with ${{ inputs.version_tag }} release information
+      #       - Added new version entry
+      #       - Updated compatible versions
+      #       - Added binary links
+      #       - Updated SDK and module versions
+      #     branch: "feat/add-${{ inputs.version_tag }}-version"
+      #     delete-branch: true
+      #     base: "feat/DO-64-update-chain-registry-on-release"

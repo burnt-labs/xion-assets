@@ -1,0 +1,28 @@
+# test-update-versions.yaml
+name: Test Update Chain Registry Versions
+on:
+  push:
+    branches:
+      - feat/DO-64-update-chain-registry-on-release
+
+jobs:
+  test-update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Call Update Versions Workflow
+        uses: ./.github/workflows/update_chain_registry_on_release.yaml
+        with:
+          version_tag: "v19.0.0"
+          cosmos_sdk_version: "v0.50.13"
+          go_version: "v1.23"
+          consensus_version: "v0.38.17"
+          cosmwasm_version: "v0.54.0"
+          ibc_version: "v8.7.0"
+          height: "2500000"
+          proposal: "18"
+          checksum_darwin_amd64: "...."
+          checksum_darwin_arm64: "...."
+          checksum_linux_amd64: "...."
+          checksum_linux_arm64: "...."
