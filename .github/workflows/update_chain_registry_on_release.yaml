@@ -7,62 +7,50 @@ on:
         required: true
         type: string
         description: "The version tag (e.g. v18.0.1)"
-        #default: "v19.0.0"
       cosmos_sdk_version:
         required: true
         type: string
         description: "Cosmos SDK version"
-        #default: "v0.50.13"
       go_version:
         required: true
         type: string
         description: "Go version"
-        #default: "v1.23"
       consensus_version:
         required: true
         type: string
         description: "CometBFT version"
-        #default: "v0.38.17"
       cosmwasm_version:
         required: true
         type: string
         description: "CosmWasm version"
-        #default: "v0.54.0"
       ibc_version:
         required: true
         type: string
         description: "IBC-Go version"
-        #default: "v8.7.0"
       height:
         required: false
         type: string
         description: "Upgrade height"
-        #default: "2500000"
       proposal:
         required: false
         type: string
         description: "Proposal ID"
-        #default: "18"
       checksum_darwin_amd64:
         required: true
         type: string
         description: "SHA256 checksum for darwin/amd64 binary"
-        #default: ".........."
       checksum_darwin_arm64:
         required: true
         type: string
         description: "SHA256 checksum for darwin/arm64 binary"
-        #default: ".........."
       checksum_linux_amd64:
         required: true
         type: string
         description: "SHA256 checksum for linux/amd64 binary"
-        #default: ".........."
       checksum_linux_arm64:
         required: true
         type: string
         description: "SHA256 checksum for linux/arm64 binary"
-        #default: ".........."
 
 jobs:
   update-versions:
@@ -93,6 +81,9 @@ jobs:
           # Read the current file
           VERSIONS_FILE="public/chain-registry/testnets/xiontestnet2/versions.json"
           
+          # Remove 'v' prefix for binary names
+          VERSION_NO_V=$(echo ${{ inputs.version_tag }} | sed 's/^v//')
+
           # Create new version entry
           NEW_VERSION=$(cat << EOF
           {
@@ -110,10 +101,10 @@ jobs:
               "version": "${{ inputs.go_version }}"
             },
             "binaries": {
-              "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_darwin_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_amd64 }}",
-              "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_darwin_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_arm64 }}",
-              "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_linux_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_amd64 }}",
-              "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${{{ inputs.version_tag }}#v}_linux_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_arm64 }}"
+              "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_darwin_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_amd64 }}",
+              "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_darwin_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_arm64 }}",
+              "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_linux_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_amd64 }}",
+              "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_linux_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_arm64 }}"
             },
             "sdk": {
               "type": "cosmos",

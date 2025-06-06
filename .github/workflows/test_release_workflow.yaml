@@ -6,7 +6,7 @@ on:
       - feat/DO-64-update-chain-registry-on-release
 
 jobs:
-  useCallable:
+  call_workflow:
     uses: ./.github/workflows/update_chain_registry_on_release.yaml
     with:
       version_tag: "v19.0.0"
