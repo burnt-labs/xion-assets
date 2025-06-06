@@ -185,6 +185,43 @@
         "type": "go",
         "version": "v8.7.0"
       }
+    },
+    {
+      "name": "v19",
+      "tag": "v19.0.0",
+      "recommended_version": "v19.0.0",
+      "compatible_versions": [
+        "TODO inputs.version_tag -1 TODO",
+        "v19.0.0"
+      ],
+      "height": 2500000,
+      "proposal": 18,
+      "language": {
+        "type": "go",
+        "version": "v1.23"
+      },
+      "binaries": {
+        "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.0/xiond_19.0.0_darwin_amd64.tar.gz?checksum=sha256:-some-md5-hash",
+        "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.0/xiond_19.0.0_darwin_arm64.tar.gz?checksum=sha256:-some-md5-hash",
+        "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.0/xiond_19.0.0_linux_amd64.tar.gz?checksum=sha256:-some-md5-hash",
+        "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.0/xiond_19.0.0_linux_arm64.tar.gz?checksum=sha256:-some-md5-hash"
+      },
+      "sdk": {
+        "type": "cosmos",
+        "version": "v0.50.13"
+      },
+      "consensus": {
+        "type": "cometbft",
+        "version": "v0.38.17"
+      },
+      "cosmwasm": {
+        "version": "v0.54.0",
+        "enabled": true
+      },
+      "ibc": {
+        "type": "go",
+        "version": "v8.7.0"
+      }
     }
   ]
 }
