@@ -6,7 +6,7 @@ on:
       - feat/DO-64-update-chain-registry-on-release
 
 jobs:
-  call_workflow:
+  call_assets_workflow:
     uses: ./.github/workflows/update_chain_registry_on_release.yaml
     with:
       version_tag: "v19.0.0"
@@ -17,7 +17,7 @@ jobs:
       ibc_version: "v8.7.0"
       height: "2500000"
       proposal: "18"
-      checksum_darwin_amd64: "...."
-      checksum_darwin_arm64: "...."
-      checksum_linux_amd64: "...."
-      checksum_linux_arm64: "...."
+      checksum_darwin_amd64: "-some-md5-hash"
+      checksum_darwin_arm64: "-some-md5-hash"
+      checksum_linux_amd64: "-some-md5-hash"
+      checksum_linux_arm64: "-some-md5-hash"
