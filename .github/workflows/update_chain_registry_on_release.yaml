@@ -71,16 +71,24 @@ jobs:
       - name: Extract version name
         id: version_info
         run: |
-          # Extract version name (e.g. v18 from v18.0.1)
+          # Extract version name (e.g. v99 from v99.0.0)
           VERSION_NAME=$(echo ${{ inputs.version_tag }} | cut -d. -f1)
           echo "version_name=${VERSION_NAME}" >> $GITHUB_OUTPUT
 
-      - name: Update versions.json
-        id: update_json
+      - name: TESTNET - Update file versions.json for testnet
+        id: update_testnet_json
         run: |
           # Read the current file
           VERSIONS_FILE="public/chain-registry/testnets/xiontestnet2/versions.json"
           
+          # Extract version components
+          VERSION_TAG="${{ inputs.version_tag }}"
+          MAJOR_VERSION=$(echo $VERSION_TAG | cut -d. -f1-2)  # gets v14.1
+          PATCH_VERSION=$(echo $VERSION_TAG | cut -d. -f3)    # gets the last number
+          
+          # Calculate previous version (decrease patch by 1)
+          PREVIOUS_VERSION="${MAJOR_VERSION}.$((PATCH_VERSION - 1))"
+
           # Remove 'v' prefix for binary names
           VERSION_NO_V=$(echo ${{ inputs.version_tag }} | sed 's/^v//')
 
@@ -91,7 +99,7 @@ jobs:
             "tag": "${{ inputs.version_tag }}",
             "recommended_version": "${{ inputs.version_tag }}",
             "compatible_versions": [
-              "TODO inputs.version_tag -1 TODO",
+              "${PREVIOUS_VERSION}",
               "${{ inputs.version_tag }}"
             ],
             "height": ${{ inputs.height }},
@@ -126,22 +134,89 @@ jobs:
           EOF
           )
 
+          cat $VERSIONS_FILE
+
           # Add new version to the versions array
           jq --argjson new "$NEW_VERSION" '.versions += [$new]' "$VERSIONS_FILE" > temp.json
           mv temp.json "$VERSIONS_FILE"
 
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          commit-message: "feat: add ${{ inputs.version_tag }} to versions.json"
-          title: "feat: add ${{ inputs.version_tag }} to chain registry"
-          body: |
-            Updates versions.json with ${{ inputs.version_tag }} release information
-            - Added new version entry
-            - Updated compatible versions
-            - Added binary links
-            - Updated SDK and module versions
-          branch: "feat/add-${{ inputs.version_tag }}-version"
-          delete-branch: true
-          base: "feat/DO-64-update-chain-registry-on-release"
-          reviewers: "2xburnt,wehappyfew"
+      - name: MAINNET - Update file versions.json for mainnet
+        id: update_mainnet_json
+        run: |
+          # Read the current file
+          VERSIONS_FILE="public/chain-registry/xion/versions.json"
+          
+          # Extract version components
+          VERSION_TAG="${{ inputs.version_tag }}"
+          MAJOR_VERSION=$(echo $VERSION_TAG | cut -d. -f1-2)  # gets v14.1
+          PATCH_VERSION=$(echo $VERSION_TAG | cut -d. -f3)    # gets the last number
+          
+          # Calculate previous version (decrease patch by 1)
+          PREVIOUS_VERSION="${MAJOR_VERSION}.$((PATCH_VERSION - 1))"
+
+          # Remove 'v' prefix for binary names
+          VERSION_NO_V=$(echo ${{ inputs.version_tag }} | sed 's/^v//')
+
+          # Create new version entry
+          NEW_VERSION=$(cat << EOF
+          {
+            "name": "${{ steps.version_info.outputs.version_name }}",
+            "tag": "${{ inputs.version_tag }}",
+            "recommended_version": "${{ inputs.version_tag }}",
+            "compatible_versions": [
+              "${PREVIOUS_VERSION}",
+              "${{ inputs.version_tag }}"
+            ],
+            "height": ${{ inputs.height }},
+            "proposal": ${{ inputs.proposal }},
+            "language": {
+              "type": "go",
+              "version": "${{ inputs.go_version }}"
+            },
+            "binaries": {
+              "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_darwin_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_amd64 }}",
+              "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_darwin_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_darwin_arm64 }}",
+              "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_linux_amd64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_amd64 }}",
+              "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/${{ inputs.version_tag }}/xiond_${VERSION_NO_V}_linux_arm64.tar.gz?checksum=sha256:${{ inputs.checksum_linux_arm64 }}"
+            },
+            "sdk": {
+              "type": "cosmos",
+              "version": "${{ inputs.cosmos_sdk_version }}"
+            },
+            "consensus": {
+              "type": "cometbft",
+              "version": "${{ inputs.consensus_version }}"
+            },
+            "cosmwasm": {
+              "version": "${{ inputs.cosmwasm_version }}",
+              "enabled": true
+            },
+            "ibc": {
+              "type": "go",
+              "version": "${{ inputs.ibc_version }}"
+            }
+          }
+          EOF
+          )
+
+          cat $VERSIONS_FILE
+
+          # Add new version to the versions array
+          jq --argjson new "$NEW_VERSION" '.versions += [$new]' "$VERSIONS_FILE" > temp.json
+          mv temp.json "$VERSIONS_FILE"
+
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v6
+      #   with:
+      #     commit-message: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion versions.json"
+      #     title: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion chain registry"
+      #     body: |
+      #       Updates xiontestnet2 & xion versions.json with ${{ inputs.version_tag }} release information
+      #       - Added new version entry
+      #       - Updated compatible versions
+      #       - Added binary links
+      #       - Updated SDK and module versions
+      #     branch: "feat/add-${{ inputs.version_tag }}-version"
+      #     delete-branch: true
+      #     base: "feat/DO-64-update-chain-registry-on-release" #TODO change to main
+      #     reviewers: "2xburnt,wehappyfew"
