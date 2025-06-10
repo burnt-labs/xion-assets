@@ -134,11 +134,11 @@ jobs:
           EOF
           )
 
-          cat $VERSIONS_FILE
-
           # Add new version to the versions array
           jq --argjson new "$NEW_VERSION" '.versions += [$new]' "$VERSIONS_FILE" > temp.json
           mv temp.json "$VERSIONS_FILE"
+
+          cat $VERSIONS_FILE
 
       - name: MAINNET - Update file versions.json for mainnet
         id: update_mainnet_json
@@ -199,11 +199,11 @@ jobs:
           EOF
           )
 
-          cat $VERSIONS_FILE
-
           # Add new version to the versions array
           jq --argjson new "$NEW_VERSION" '.versions += [$new]' "$VERSIONS_FILE" > temp.json
           mv temp.json "$VERSIONS_FILE"
+
+          cat $VERSIONS_FILE
 
       # - name: Create Pull Request
       #   uses: peter-evans/create-pull-request@v6
