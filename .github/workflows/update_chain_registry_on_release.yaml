@@ -80,14 +80,6 @@ jobs:
         run: |
           # Read the current file
           VERSIONS_FILE="public/chain-registry/testnets/xiontestnet2/versions.json"
-          
-          # Extract version components
-          VERSION_TAG="${{ inputs.version_tag }}"
-          MAJOR_VERSION=$(echo $VERSION_TAG | cut -d. -f1-2)  # gets v14.1
-          PATCH_VERSION=$(echo $VERSION_TAG | cut -d. -f3)    # gets the last number
-          
-          # Calculate previous version (decrease patch by 1)
-          PREVIOUS_VERSION="${MAJOR_VERSION}.$((PATCH_VERSION - 1))"
 
           # Remove 'v' prefix for binary names
           VERSION_NO_V=$(echo ${{ inputs.version_tag }} | sed 's/^v//')
@@ -98,10 +90,6 @@ jobs:
             "name": "${{ steps.version_info.outputs.version_name }}",
             "tag": "${{ inputs.version_tag }}",
             "recommended_version": "${{ inputs.version_tag }}",
-            "compatible_versions": [
-              "${PREVIOUS_VERSION}",
-              "${{ inputs.version_tag }}"
-            ],
             "height": ${{ inputs.height }},
             "proposal": ${{ inputs.proposal }},
             "language": {
@@ -145,14 +133,6 @@ jobs:
         run: |
           # Read the current file
           VERSIONS_FILE="public/chain-registry/xion/versions.json"
-          
-          # Extract version components
-          VERSION_TAG="${{ inputs.version_tag }}"
-          MAJOR_VERSION=$(echo $VERSION_TAG | cut -d. -f1-2)  # gets v14.1
-          PATCH_VERSION=$(echo $VERSION_TAG | cut -d. -f3)    # gets the last number
-          
-          # Calculate previous version (decrease patch by 1)
-          PREVIOUS_VERSION="${MAJOR_VERSION}.$((PATCH_VERSION - 1))"
 
           # Remove 'v' prefix for binary names
           VERSION_NO_V=$(echo ${{ inputs.version_tag }} | sed 's/^v//')
@@ -163,10 +143,6 @@ jobs:
             "name": "${{ steps.version_info.outputs.version_name }}",
             "tag": "${{ inputs.version_tag }}",
             "recommended_version": "${{ inputs.version_tag }}",
-            "compatible_versions": [
-              "${PREVIOUS_VERSION}",
-              "${{ inputs.version_tag }}"
-            ],
             "height": ${{ inputs.height }},
             "proposal": ${{ inputs.proposal }},
             "language": {
@@ -205,18 +181,18 @@ jobs:
 
           cat $VERSIONS_FILE
 
-      # - name: Create Pull Request
-      #   uses: peter-evans/create-pull-request@v6
-      #   with:
-      #     commit-message: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion versions.json"
-      #     title: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion chain registry"
-      #     body: |
-      #       Updates xiontestnet2 & xion versions.json with ${{ inputs.version_tag }} release information
-      #       - Added new version entry
-      #       - Updated compatible versions
-      #       - Added binary links
-      #       - Updated SDK and module versions
-      #     branch: "feat/add-${{ inputs.version_tag }}-version"
-      #     delete-branch: true
-      #     base: "feat/DO-64-update-chain-registry-on-release" #TODO change to main
-      #     reviewers: "2xburnt,wehappyfew"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion versions.json"
+          title: "feat: add ${{ inputs.version_tag }} to xiontestnet2 & xion chain registry"
+          body: |
+            Updates xiontestnet2 & xion versions.json with ${{ inputs.version_tag }} release information
+            - Added new version entry
+            - Updated compatible versions
+            - Added binary links
+            - Updated SDK and module versions
+          branch: "feat/add-${{ inputs.version_tag }}-version"
+          delete-branch: true
+          base: "feat/DO-64-update-chain-registry-on-release" #TODO change to main
+          reviewers: "2xburnt,wehappyfew"
