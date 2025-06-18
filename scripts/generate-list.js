@@ -12,10 +12,10 @@ const getJsonFiles = async (sourcesDir, dir, publicDir) => {
         const fullPath = join(dir, file.name);
         const relativePath = relative(sourcesDir, fullPath); // Relative to public/
 
-        if (file.isDirectory()) {
+        if (file.isDirectory() && file.name !== "xiontestnet") {
             const subDirFiles = await getJsonFiles(sourcesDir, fullPath, publicDir); // Recursively find files
             results = results.concat(subDirFiles);
-        } else if (file.name.endsWith(".json") && !file.name.endsWith("schema.json")) {
+        } else if (file.name.endsWith(".json") && !file.name.endsWith("schema.json") && !file.name.endsWith("xiontestnet.json")) {
             const publicPath = join(publicDir, relativePath);
             const publicDirPath = join(publicDir, relative(sourcesDir, dir));
             await mkdir(publicDirPath, { recursive: true }); // Create directory if it doesn't exist
