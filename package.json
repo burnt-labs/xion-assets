@@ -5,7 +5,6 @@
 	"type": "module",
 	"scripts": {
 		"dev": "vite",
-		"prebuild": "node scripts/generate-list.js",
 		"build": "run-p type-check \"build-only {@}\" --",
 		"preview": "npm run build && wrangler dev",
 		"build-only": "vite build",
