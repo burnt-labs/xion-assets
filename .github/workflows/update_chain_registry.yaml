@@ -1,0 +1,107 @@
+name: Update Chain Registry Versions
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_info:
+        description: "Version information in JSON format"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version_info:
+        description: "Version information in JSON format"
+        required: true
+        type: string
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      matrix:
+        network:
+          - name: testnet
+            versions_file: "public/chain-registry/testnets/xiontestnet2/versions.json"
+            chain_file: "public/chain-registry/testnets/xiontestnet2/chain.json"
+          - name: mainnet
+            versions_file: "public/chain-registry/xion/versions.json"
+            chain_file: "public/chain-registry/xion/chain.json"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensure we can create branches
+        
+      - name: Extract version name
+        id: version_info
+        run: |
+          echo "VERSION_NAME=$(echo '${{ inputs.version_info }}' | jq -r '.name')" >> $GITHUB_ENV
+          echo "VERSION_TAG=$(echo '${{ inputs.version_info }}' | jq -r '.tag')" >> $GITHUB_ENV
+
+      - name: Create new branch
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}
+          git push --set-upstream origin upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}
+
+      - name: Update file ${{ matrix.network.name }}
+        id: update_json
+        run: |
+          # Set variables based on network
+          VERSIONS_FILE="${{ matrix.network.versions_file }}"
+          CHAIN_FILE="${{ matrix.network.chain_file }}"
+          
+          
+          # Check if version already exists and update or append
+          if jq -e --arg name "$VERSION_NAME" '.versions[] | select(.name == $name)' "$VERSIONS_FILE" > /dev/null; then
+            echo "Version $VERSION_NAME already exists, updating..."
+            jq --arg name "$VERSION_NAME" --argjson new '${{ inputs.version_info }}' '
+              .versions = (.versions | map(if .name == $name then $new else . end))
+            ' "$VERSIONS_FILE" > temp.json
+          else
+            echo "Version $VERSION_NAME does not exist, appending..."
+            jq --arg name "$VERSION_NAME" --argjson new '${{ inputs.version_info }}' '
+              .versions += [$new]
+            ' "$VERSIONS_FILE" > temp.json
+          fi
+          
+          mv temp.json "$VERSIONS_FILE"
+          cat $VERSIONS_FILE
+
+          # Update chain.json
+          echo "Updating chain.json with version tag: $VERSION_TAG"
+          jq --arg version_tag "$VERSION_TAG" '.codebase.tag = $version_tag | .codebase.recommended_version = $version_tag' "$CHAIN_FILE" > temp_chain.json
+          mv temp_chain.json "$CHAIN_FILE"
+          cat "$CHAIN_FILE"
+
+      - name: Commit and push changes
+        id: commit_changes
+        run: |
+          git add "${{ matrix.network.chain_file }}" "${{ matrix.network.versions_file }}"
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "changes_made=false" >> $GITHUB_OUTPUT
+          else
+            git commit -m "upgrade: upgrade ${{ matrix.network.name }} to ${{ env.VERSION_TAG }} in versions.json and chain.json"
+            git push origin upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}
+            echo "changes_made=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request - ${{ matrix.network.name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --title "upgrade: upgrade ${{ env.VERSION_TAG }} to ${{ matrix.network.name }} chain registry" \
+            --body "Updates ${{ matrix.network.name }} versions.json and chain.json with ${{ env.VERSION_TAG }} release information" \
+            --head "upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}" \
+            --reviewer "2xburnt" \
+            --reviewer "wehappyfew"
