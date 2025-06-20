@@ -1,0 +1,119 @@
+name: Update Chain Registry Versions
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_info:
+        description: "Version information in JSON format"
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      version_info:
+        description: "Version information in JSON format"
+        required: true
+        type: string
+
+jobs:
+  update-versions:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    strategy:
+      matrix:
+        network:
+          - name: testnet
+            versions_file: "public/chain-registry/testnets/xiontestnet2/versions.json"
+            chain_file: "public/chain-registry/testnets/xiontestnet2/chain.json"
+          - name: mainnet
+            versions_file: "public/chain-registry/xion/versions.json"
+            chain_file: "public/chain-registry/xion/chain.json"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Ensure we can create branches
+        
+      - name: Extract version name
+        id: version_info
+        run: |
+            # Set variables using heredoc
+            VERSION_INFO='${{ inputs.version_info }}'
+            VERSION_TAG=$(echo "$VERSION_INFO" | jq -r '.tag')
+            VERSION_NAME=$(echo "$VERSION_INFO" | jq -r '.name')
+            VERSIONS_FILE="${{ matrix.network.versions_file }}"
+            CHAIN_FILE="${{ matrix.network.chain_file }}"
+            NEW_BRANCH="upgrade/${{ matrix.network.name }}-$VERSION_TAG"
+
+
+            echo "VERSION_INFO=$VERSION_INFO" >> $GITHUB_ENV
+            echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
+            echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
+            echo "CHAIN_FILE=$CHAIN_FILE" >> $GITHUB_ENV
+            echo "VERSIONS_FILE=$VERSIONS_FILE" >> $GITHUB_ENV
+            echo "NEW_BRANCH=$NEW_BRANCH" >> $GITHUB_ENV
+
+      - name: Create new branch
+        run: |
+            # Check if the branch already exists
+            if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
+              git checkout ${NEW_BRANCH}
+            else
+              git checkout -b $NEW_BRANCH
+              git push --set-upstream origin $NEW_BRANCH
+            fi
+
+      - name: Update file ${{ matrix.network.versions_file }}
+        id: update_version_json
+        run: |
+          # Check if version already exists and update or append
+            if jq -e --arg name "$VERSION_NAME" '.versions[] | select(.name == $name)' "$VERSIONS_FILE" > /dev/null; then
+            echo "Version $VERSION_NAME already exists, updating..."
+            jq --arg name "$VERSION_NAME" --argjson new "$VERSION_INFO" '
+              .versions = (.versions | map(if .name == $name then ($new + .) else . end))
+            ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
+          else
+            echo "Version $VERSION_NAME does not exist, appending..."
+            jq --arg name "$VERSION_NAME" --argjson new "$VERSION_INFO" '
+              .versions += [$new]
+            ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
+          fi
+          
+      - name: Update file ${{ matrix.network.chain_file }}
+        run: |
+          # Update chain.json
+          echo "Updating chain.json for version: $VERSION_NAME"
+            jq --arg name "$VERSION_NAME" --argjson new "$VERSION_INFO" '
+            .codebase = (.codebase | map(if .name == $name then ($new | with_entries(select(.key | IN(keys_unsorted(.)))) + .) else . end))
+          ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
+          cat "$CHAIN_FILE"
+
+      - name: Commit changes
+        id: commit_changes
+        uses: pirafrank/github-commit-sign@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_MESSAGE: "upgrade: upgrade ${{ matrix.network.name }} to ${{ steps.extract_version.outputs.VERSION_TAG }} in versions.json and chain.json"
+        with:
+            args: |
+              commit \
+                --owner=${{ github.repository_owner }} \
+                --repo=${{ github.event.repository.name }} \
+                --branch=${{ env.NEW_BRANCH }} \
+                --commitMessage='${{ env.COMMIT_MESSAGE }}' \
+                --changed="${{ matrix.network.chain_file }}" \
+                --changed="${{ matrix.network.versions_file}}"
+      
+      - name: Create Pull Request - ${{ matrix.network.name }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr create \
+            --base main \
+            --title "upgrade: upgrade ${{ env.VERSION_TAG }} to ${{ matrix.network.name }} chain registry" \
+            --body "Updates ${{ matrix.network.name }} versions.json and chain.json with ${{ env.VERSION_TAG }} release information" \
+            --head "upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}" \
+            --reviewer "2xburnt" \
+            --reviewer "wehappyfew"
