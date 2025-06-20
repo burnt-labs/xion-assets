@@ -188,22 +188,17 @@
     },
     {
       "name": "v19",
-      "tag": "v19.0.1",
-      "recommended_version": "v19.0.1",
-      "compatible_versions": [
-        "v19.0.1"
-      ],
-      "height": 7420000,
-      "proposal": 37,
+      "tag": "v19.0.2-9-g896f0e1",
+      "recommended_version": "v19.0.2-9-g896f0e1",
       "language": {
         "type": "go",
-        "version": "v1.23"
+        "version": "1.23.5"
       },
       "binaries": {
-        "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_darwin_amd64.tar.gz?checksum=sha256:f350e2ab0cc08c18acce0d6518bd4f29ac88f1c331eb10d3ca43ec3e74103521",
-        "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_darwin_arm64.tar.gz?checksum=sha256:9c2944de98c54f4e8517259d0782daca4c43900887b7d7c19044ba75b6e2976d",
-        "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_linux_amd64.tar.gz?checksum=sha256:5350ccf4fb83f086f772ceebd8a1c3788c2fa64ad1976d92052842e23a1977c3",
-        "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_linux_arm64.tar.gz?checksum=sha256:efed79d4b240c6edaa4488b54e7efcbff89313c0f0ed6e1682dab0f1d97315c2"
+        "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2-9-g896f0e1/xiond_19.0.2-01306d7_darwin_amd64.tar.gz?checksum=sha256:62fb297c42818cd9d4d7ee2b184c71164524cb0a6542b5db661d2c09e8702381",
+        "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2-9-g896f0e1/xiond_19.0.2-01306d7_darwin_arm64.tar.gz?checksum=sha256:1e6c461dd560a2bd4796cae96c49e7f4fb541331f8bf4f5dab4c40172b0db8f1",
+        "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2-9-g896f0e1/xiond_19.0.2-01306d7_linux_amd64.tar.gz?checksum=sha256:0ba3ad24c67276191c57b2bceaa649da225fc6251007df3f35d1834bcfbcef0f",
+        "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2-9-g896f0e1/xiond_19.0.2-01306d7_linux_arm64.tar.gz?checksum=sha256:8b8c80d58b61c86f001ae531c780fa53dfb581fd142a0614a85a506c3d1be7b5"
       },
       "sdk": {
         "type": "cosmos",
@@ -214,7 +209,7 @@
         "version": "v0.38.17"
       },
       "cosmwasm": {
-        "version": "v0.54.0",
+        "version": "v0.54.1",
         "enabled": true
       },
       "ibc": {
