@@ -192,7 +192,7 @@
       "recommended_version": "v19.0.2-9-g896f0e1",
       "language": {
         "type": "go",
-        "version": "1.23.5"
+        "version": "v1.23"
       },
       "binaries": {
         "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2-9-g896f0e1/xiond_19.0.2-01306d7_darwin_amd64.tar.gz?checksum=sha256:62fb297c42818cd9d4d7ee2b184c71164524cb0a6542b5db661d2c09e8702381",
