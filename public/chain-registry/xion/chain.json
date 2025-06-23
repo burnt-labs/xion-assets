@@ -42,17 +42,17 @@
   },
   "codebase": {
     "git_repo": "https://github.com/burnt-labs/xion",
-    "tag": "v19.0.1",
-    "recommended_version": "v19.0.1",
+    "tag": "v19.0.2",
+    "recommended_version": "v19.0.2",
     "language": {
       "type": "go",
       "version": "v1.23"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_darwin_amd64.tar.gz?checksum=sha256:f350e2ab0cc08c18acce0d6518bd4f29ac88f1c331eb10d3ca43ec3e74103521",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_darwin_arm64.tar.gz?checksum=sha256:9c2944de98c54f4e8517259d0782daca4c43900887b7d7c19044ba75b6e2976d",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_linux_amd64.tar.gz?checksum=sha256:5350ccf4fb83f086f772ceebd8a1c3788c2fa64ad1976d92052842e23a1977c3",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.1/xiond_19.0.1_linux_arm64.tar.gz?checksum=sha256:efed79d4b240c6edaa4488b54e7efcbff89313c0f0ed6e1682dab0f1d97315c2"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2/xiond_19.0.2_darwin_amd64.tar.gz?checksum=sha256:edda13aec2274f1eceb933874a885d055b14acbbe0de21ba61ed9c25c64813d6",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2/xiond_19.0.2_darwin_arm64.tar.gz?checksum=sha256:7b94d2fdf1baa1d3dff4f947858a2bac684257be27f8bf179fb973ee8dd4fdb8",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2/xiond_19.0.2_linux_amd64.tar.gz?checksum=sha256:6072ce81d08f77f98e2d2ae7726007eca18579ea2b1690b5f76b4df782690dcb",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v19.0.2/xiond_19.0.2_linux_arm64.tar.gz?checksum=sha256:0a55360653b596da5ace43c3b4a3fef6c9785bfe0e73405f591768b449af0e70"
     },
     "sdk": {
       "type": "cosmos",
@@ -79,12 +79,12 @@
       {
         "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
         "address": "xion-mainnet-seed.autostake.com:27596",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
+        "provider": "AutoStake 🛡️ Slash Protected"
       },
       {
         "id": "20e1000e88125698264454a884812746c2eb4807",
         "address": "seeds.lavenderfive.com:22356",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
+        "provider": "Lavender.Five Nodes 🐝"
       },
       {
         "id": "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0",
@@ -96,12 +96,12 @@
       {
         "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
         "address": "xion-mainnet-peer.autostake.com:27596",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
+        "provider": "AutoStake 🛡️ Slash Protected"
       },
       {
         "id": "20e1000e88125698264454a884812746c2eb4807",
         "address": "seeds.lavenderfive.com:22356",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
+        "provider": "Lavender.Five Nodes 🐝"
       },
       {
         "id": "cc90aceb84a07b2bd4fe1dce3c1542a3900cf2f8",
@@ -139,11 +139,11 @@
     "rpc": [
       {
         "address": "https://rpc.xion-mainnet-1.burnt.com:443",
-        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
+        "provider": "🔥BurntLabs🔥"
       },
       {
         "address": "https://xion-rpc.lavenderfive.com:443",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
+        "provider": "Lavender.Five Nodes 🐝"
       },
       {
         "address": "https://rpc-burnt.imperator.co:443",
@@ -155,7 +155,7 @@
       },
       {
         "address": "https://xion-mainnet-rpc.autostake.com:443",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
+        "provider": "AutoStake 🛡️ Slash Protected"
       },
       {
         "address": "https://rpc.xion.nodestake.org:443",
@@ -163,17 +163,17 @@
       },
       {
         "address": "https://xion-rpc.kingnodes.com:443",
-        "provider": "kingnodes \ud83d\udc51"
+        "provider": "kingnodes 👑"
       }
     ],
     "rest": [
       {
         "address": "https://api.xion-mainnet-1.burnt.com",
-        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
+        "provider": "🔥BurntLabs🔥"
       },
       {
         "address": "https://xion-api.lavenderfive.com",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
+        "provider": "Lavender.Five Nodes 🐝"
       },
       {
         "address": "https://lcd-burnt.imperator.co",
@@ -185,7 +185,7 @@
       },
       {
         "address": "https://xion-mainnet-lcd.autostake.com",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
+        "provider": "AutoStake 🛡️ Slash Protected"
       },
       {
         "address": "https://api.xion.nodestake.org",
@@ -193,17 +193,17 @@
       },
       {
         "address": "https://xion-rest.kingnodes.com",
-        "provider": "kingnodes \ud83d\udc51"
+        "provider": "kingnodes 👑"
       }
     ],
     "grpc": [
       {
         "address": "grpc.xion-mainnet-1.burnt.com:443",
-        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
+        "provider": "🔥BurntLabs🔥"
       },
       {
         "address": "xion-grpc.lavenderfive.com:443",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
+        "provider": "Lavender.Five Nodes 🐝"
       },
       {
         "address": "xion-grpc.polkachu.com:22390",
@@ -211,7 +211,7 @@
       },
       {
         "address": "xion-mainnet-grpc.autostake.com:443",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
+        "provider": "AutoStake 🛡️ Slash Protected"
       },
       {
         "address": "grpc.xion.nodestake.org:443",
@@ -219,7 +219,7 @@
       },
       {
         "address": "xion-grpc.kingnodes.com:443",
-        "provider": "kingnodes \ud83d\udc51"
+        "provider": "kingnodes 👑"
       }
     ]
   },
@@ -268,5 +268,8 @@
     "xion",
     "burnt",
     "mainnet"
-  ]
+  ],
+  "code_info": {
+    "version": "v19.0.2-9-g896f0e1"
+  }
 }
