@@ -190,12 +190,6 @@
       "name": "v19",
       "tag": "v19.0.2",
       "recommended_version": "v19.0.2",
-      "compatible_versions": [
-        "v19.0.1",
-        "v19.0.2"
-      ],
-      "height": 7420000,
-      "proposal": 37,
       "language": {
         "type": "go",
         "version": "v1.23"
@@ -221,7 +215,13 @@
       "ibc": {
         "type": "go",
         "version": "v8.7.0"
-      }
+      },
+      "compatible_versions": [
+        "v19.0.1",
+        "v19.0.2"
+      ],
+      "height": 7420000,
+      "proposal": 37
     }
   ]
 }
