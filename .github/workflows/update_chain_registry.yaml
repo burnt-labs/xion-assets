@@ -3,19 +3,84 @@ name: Update Chain Registry Versions
 on:
   workflow_dispatch:
     inputs:
-      version_info:
-        description: "Version information in JSON format"
+      release_tag:
+        description: 'Release tag to update the chain registry with'
         required: true
         type: string
   workflow_call:
     inputs:
-      version_info:
-        description: "Version information in JSON format"
+      release_tag:
+        description: 'Release tag to update the chain registry with'
         required: true
         type: string
 
 jobs:
+  get-version-info:
+    runs-on: ubuntu-latest
+    outputs:
+      version_info: ${{ steps.extract_info.outputs.version_info }}
+    env:
+      release_tag: ${{ inputs.release_tag }}  
+    steps:
+      - name: Generate Binary Info
+        id: binary_info
+        run: |
+          set -Eeuo pipefail
+          
+          release_base_url="https://github.com/burnt-labs/xion/releases/download/$release_tag"
+          checksums_file_url="$release_base_url/xiond-$(echo "$release_tag" | sed 's/^v//')-checksums.txt"
+          
+          # Read checksums from the file using curl
+          binaries=$(paste -s -d "," <(curl -sSL "$checksums_file_url" | awk '/xiond_.*\.tar\.gz/ && !/xiond_.*darwin_all/' | while read checksum filename; do
+              platform=$(basename "$filename" ".tar.gz" | cut -d_ -f3- | sed -E 's/^rc[0-9]*-//g; s/_/\//g')
+              echo "\"$platform\": \"$release_base_url/$filename?checksum=sha256:$checksum\""
+          done))
+
+          echo "binaries_json={\"binaries\": {$binaries}}" >> $GITHUB_OUTPUT
+          
+      - name: Generate Version Info
+        id: extract_info
+        env:
+          release_tag: ${{ env.release_tag }}
+          binaries_json: ${{ steps.binary_info.outputs.binaries_json }}
+        run: |
+          set -Eeuo pipefail
+
+          upgrade_name=$(echo $release_tag | cut -d. -f1)
+          curl -sSL "https://raw.githubusercontent.com/burnt-labs/xion/$release_tag/go.mod" -o go.mod
+          VERSION_INFO=$(
+            go mod edit -json |
+            jq --argjson binaries "$binaries_json" --arg name "$upgrade_name" --arg tag "$release_tag" '{
+              name: $name,
+              tag: $tag,
+              recommended_version: $tag,
+              language: {
+                type: "go",
+                version: ("v" + (.Go | split(".") | first + "." + (.[1] // "")))
+              },
+              binaries: $binaries.binaries,
+              sdk: {
+                type: "cosmos",
+                version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version)
+              },
+              consensus: {
+                type: "cometbft",
+                version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
+              },
+              cosmwasm: {
+                version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
+                enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null)
+              },
+              ibc: {
+                type: "go",
+                version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version)
+              }
+            }' -c)
+          
+          echo "version_info=$VERSION_INFO" >> $GITHUB_OUTPUT
+
   update-versions:
+    needs: get-version-info
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -38,25 +103,22 @@ jobs:
         
       - name: Extract version name
         id: version_info
+        env:
+          VERSION_INFO: ${{ needs.get-version-info.outputs.version_info }}
         run: |
+            set -Eeuo pipefail
+
             # Set variables using heredoc
-            VERSION_INFO='${{ inputs.version_info }}'
-            VERSION_TAG=$(echo "$VERSION_INFO" | jq -r '.tag')
-            VERSION_NAME=$(echo "$VERSION_INFO" | jq -r '.name')
-            VERSIONS_FILE="${{ matrix.network.versions_file }}"
-            CHAIN_FILE="${{ matrix.network.chain_file }}"
-            NEW_BRANCH="upgrade/${{ matrix.network.name }}-$VERSION_TAG"
-
-
-            echo "VERSION_INFO=$VERSION_INFO" >> $GITHUB_ENV
-            echo "VERSION_TAG=$VERSION_TAG" >> $GITHUB_ENV
-            echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
-            echo "CHAIN_FILE=$CHAIN_FILE" >> $GITHUB_ENV
-            echo "VERSIONS_FILE=$VERSIONS_FILE" >> $GITHUB_ENV
-            echo "NEW_BRANCH=$NEW_BRANCH" >> $GITHUB_ENV
+            echo "version_tag=$(echo "$VERSION_INFO" | jq -r '.tag')" >> $GITHUB_OUTPUT
+            echo "version_name=$(echo "$VERSION_INFO" | jq -r '.name')" >> $GITHUB_OUTPUT
 
       - name: Create new branch
+        id: create_branch
+        env :
+          NEW_BRANCH: "upgrade/${{ matrix.network.name }}/${{ steps.version_info.outputs.version_tag }}"
         run: |
+            set -Eeuo pipefail
+
             # Check if the branch already exists
             if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
               git checkout ${NEW_BRANCH}
@@ -64,10 +126,17 @@ jobs:
               git checkout -b $NEW_BRANCH
               git push --set-upstream origin $NEW_BRANCH
             fi
+            echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
 
       - name: Update file ${{ matrix.network.versions_file }}
         id: update_version_json
+        env:
+          VERSION_INFO: ${{ needs.get-version-info.outputs.version_info }}
+          VERSIONS_FILE: ${{ matrix.network.versions_file }}
+          VERSION_NAME: ${{ steps.version_info.outputs.version_name }}
         run: |
+          set -Eeuo pipefail
+
           # Check if version already exists and update or append
           if jq -e --arg name "$VERSION_NAME" '.versions[] | select(.name == $name)' "$VERSIONS_FILE" > /dev/null; then
             echo "Version $VERSION_NAME already exists, updating..."
@@ -82,10 +151,15 @@ jobs:
           fi
           
       - name: Update file ${{ matrix.network.chain_file }}
+        env:
+          VERSION_INFO: ${{ needs.get-version-info.outputs.version_info }}
+          CHAIN_FILE: ${{ matrix.network.chain_file }}
         run: |
+          set -Eeuo pipefail
+
           # Update chain.json
-            echo "Updating chain.json with new version info"
-            jq --argjson new "$VERSION_INFO" '
+          echo "Updating chain.json with new version info"
+          jq --argjson new "$VERSION_INFO" '
             .codebase += $new
           ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
           cat "$CHAIN_FILE"
@@ -95,26 +169,30 @@ jobs:
         uses: pirafrank/github-commit-sign@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COMMIT_MESSAGE: "upgrade: upgrade ${{ matrix.network.name }} to ${{ steps.extract_version.outputs.VERSION_TAG }} in versions.json and chain.json"
         with:
             args: |
               commit \
                 --owner=${{ github.repository_owner }} \
                 --repo=${{ github.event.repository.name }} \
-                --branch=${{ env.NEW_BRANCH }} \
-                --commitMessage='${{ env.COMMIT_MESSAGE }}' \
+                --branch=${{ steps.create_branch.outputs.new_branch }} \
+                --commitMessage="upgrade ${{ matrix.network.name }} to ${{ steps.version_info.outputs.version_tag }} in versions.json and chain.json" \
                 --changed="${{ matrix.network.chain_file }}" \
                 --changed="${{ matrix.network.versions_file}}"
       
       - name: Create Pull Request - ${{ matrix.network.name }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NETWORK_NAME: ${{ matrix.network.name }}
+          NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
+          VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
         run: |
+          set -Eeuo pipefail
+
           gh pr create \
             --base main \
             --draft \
-            --title "upgrade: upgrade ${{ env.VERSION_TAG }} to ${{ matrix.network.name }} chain registry" \
-            --body "Updates ${{ matrix.network.name }} versions.json and chain.json with ${{ env.VERSION_TAG }} release information" \
-            --head "upgrade/${{ matrix.network.name }}-${{ env.VERSION_TAG }}" \
+            --title "upgrade: upgrade $VERSION_TAG to $NETWORK_NAME chain registry" \
+            --body "Updates $NETWORK_NAME versions.json and chain.json with $VERSION_TAG release information" \
+            --head "$NEW_BRANCH" \
             --reviewer "2xburnt" \
             --reviewer "wehappyfew"
