@@ -160,7 +160,7 @@ jobs:
           # Update chain.json
           echo "Updating chain.json with new version info"
           jq --argjson new "$VERSION_INFO" '
-          .codebase += ($new | del(.name))
+            codebase += ($new | del(.name))
           ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
           cat "$CHAIN_FILE"
 
