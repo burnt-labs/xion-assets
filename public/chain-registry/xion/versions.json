@@ -376,6 +376,8 @@
       "name": "v20",
       "tag": "v20.0.0",
       "recommended_version": "v20.0.0",
+      "height": 10930000,
+      "proposal": 44,
       "language": {
         "type": "go",
         "version": "v1.23"
