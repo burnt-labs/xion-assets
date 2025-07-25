@@ -41,7 +41,7 @@ jobs:
           set -Eeuo pipefail
           
           # Get the latest release from xion repository (using GitHub API directly, no auth needed for public repos)
-          latest_release=$(curl -s https://api.github.com/repos/burnt-labs/xion/releases/latest | jq -r '.tag_name // empty')
+          latest_release=$(curl -s https://api.github.com/repos/burnt-labs/xion/releases | jq -r '.[0].tag_name')
           
           if [ -z "$latest_release" ] || [ "$latest_release" = "null" ]; then
             echo "No latest release found"
