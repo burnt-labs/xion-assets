@@ -41,8 +41,11 @@ Since this workflow creates PRs in an external repository (`cosmos/chain-registr
 - ✅ Release detection from burnt-labs/xion (public API)
 - ✅ Downloading release binaries and checksums (public URLs)
 - ✅ Parsing version information from go.mod (public file)
+- ✅ Checking out cosmos/chain-registry (public repository)
+- ✅ Reading and modifying files locally
+- ✅ Creating commits locally
 
-> **Testing tip**: You can test the first two jobs of the workflow without a token by running it manually with `workflow_dispatch`. Only the final PR creation step will fail.
+> **Testing tip**: The first two jobs of the workflow work completely without a token. Only the pushing/PR creation steps need authentication.
 
 ### 2. Repository Permissions
 
@@ -88,9 +91,12 @@ If you want to test the release detection logic without setting up a token first
 ## Workflow Steps
 
 ### 1. Check for New Release
-- Fetches the latest release from `burnt-labs/xion` (no auth required - uses public API)
+- Fetches the most recent release from `burnt-labs/xion` (no auth required - uses public API)  
+- Gets the chronologically newest release (not just GitHub's "latest" marked release)
 - Checks if it's already been processed by looking for existing PRs (requires token for reliable access)
 - Skips if already processed (unless force sync is enabled)
+
+> **Note**: The workflow uses the chronologically newest release, not GitHub's "latest" flag. This ensures it picks up v20.0.0 even if v19.0.2 is still marked as "latest" by the maintainers.
 
 ### 2. Extract Version Information
 - Downloads checksums and binary information
