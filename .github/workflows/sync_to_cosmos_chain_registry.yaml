@@ -1,0 +1,305 @@
+name: Sync to Cosmos Chain Registry
+
+# This workflow triggers on merge to main and creates PRs in cosmos/chain-registry
+# for new xion releases. It requires a GitHub token with permissions to:
+# - Fork and create PRs in cosmos/chain-registry
+# 
+# Setup required:
+# 1. Create a GitHub Personal Access Token with repo permissions
+# 2. Add it as a repository secret named CHAIN_REGISTRY_TOKEN
+
+on:
+  push:
+    branches:
+      # - main TODO
+      - feat/do84-create-pr-in-cosmos
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: 'Force sync even if already processed'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  check-for-new-release:
+    runs-on: ubuntu-latest
+    outputs:
+      release_tag: ${{ steps.check_release.outputs.release_tag }}
+      should_sync: ${{ steps.check_release.outputs.should_sync }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for new release
+        id: check_release
+        env:
+          FORCE_SYNC: ${{ inputs.force_sync }}
+        run: |
+          set -Eeuo pipefail
+          
+          # Get the latest release from xion repository (using GitHub API directly, no auth needed for public repos)
+          latest_release=$(curl -s https://api.github.com/repos/burnt-labs/xion/releases/latest | jq -r '.tag_name // empty')
+          
+          if [ -z "$latest_release" ] || [ "$latest_release" = "null" ]; then
+            echo "No latest release found"
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Latest release: $latest_release"
+          
+          # Check if we've already processed this release (this still needs auth for reliable access)
+          if [ -n "${{ secrets.CHAIN_REGISTRY_TOKEN }}" ]; then
+            export GH_TOKEN="${{ secrets.CHAIN_REGISTRY_TOKEN }}"
+            processed=$(gh pr list --repo cosmos/chain-registry --state all --search "xion mainnet release $latest_release" --json number --jq 'length' || echo "0")
+          else
+            echo "No CHAIN_REGISTRY_TOKEN found, skipping duplicate check (will rely on later PR creation step to handle duplicates)"
+            processed=0
+          fi
+          
+          if [ "$processed" -gt 0 ] && [ "$FORCE_SYNC" != "true" ]; then
+            echo "Release $latest_release already processed, skipping"
+            echo "should_sync=false" >> $GITHUB_OUTPUT
+          else
+            echo "New release $latest_release found, will sync"
+            echo "release_tag=$latest_release" >> $GITHUB_OUTPUT
+            echo "should_sync=true" >> $GITHUB_OUTPUT
+          fi
+
+  get-version-info:
+    needs: check-for-new-release
+    if: needs.check-for-new-release.outputs.should_sync == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      version_info: ${{ steps.extract_info.outputs.version_info }}
+      upgrade_info: ${{ steps.extract_info.outputs.upgrade_info }}
+    env:
+      release_tag: ${{ needs.check-for-new-release.outputs.release_tag }}  
+    steps:
+      - name: Generate Binary Info
+        id: binary_info
+        run: |
+          set -Eeuo pipefail
+          
+          release_base_url="https://github.com/burnt-labs/xion/releases/download/$release_tag"
+          checksums_file_url="$release_base_url/xiond-$(echo "$release_tag" | sed 's/^v//')-checksums.txt"
+          
+          # Read checksums from the file using curl
+          binaries=$(paste -s -d "," <(curl -sSL "$checksums_file_url" | awk '/xiond_.*\.tar\.gz/ && !/xiond_.*darwin_all/' | while read checksum filename; do
+              platform=$(basename "$filename" ".tar.gz" | cut -d_ -f3- | sed -E 's/^rc[0-9]*-//g; s/_/\//g')
+              echo "\"$platform\": \"$release_base_url/$filename?checksum=sha256:$checksum\""
+          done))
+
+          echo "binaries_json={\"binaries\": {$binaries}}" >> $GITHUB_OUTPUT
+          
+      - name: Generate Version Info
+        id: extract_info
+        env:
+          release_tag: ${{ env.release_tag }}
+          binaries_json: ${{ steps.binary_info.outputs.binaries_json }}
+        run: |
+          set -Eeuo pipefail
+
+          upgrade_name=$(echo $release_tag | cut -d. -f1)
+          curl -sSL "https://raw.githubusercontent.com/burnt-labs/xion/$release_tag/go.mod" -o go.mod
+          
+          VERSION_INFO=$(
+            go mod edit -json |
+            jq --argjson binaries "$binaries_json" --arg name "$upgrade_name" --arg tag "$release_tag" '{
+              name: $name,
+              tag: $tag,
+              recommended_version: $tag,
+              language: {
+                type: "go",
+                version: ("v" + (.Go | split(".") | first + "." + (.[1] // "")))
+              },
+              binaries: $binaries.binaries,
+              sdk: {
+                type: "cosmos",
+                version: (.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version)
+              },
+              consensus: {
+                type: "cometbft",
+                version: (.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version)
+              },
+              cosmwasm: {
+                version: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version),
+                enabled: (.Require[] | select(.Path == "github.com/CosmWasm/wasmd") != null)
+              },
+              ibc: {
+                type: "go",
+                version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version)
+              }
+            }' -c)
+          
+          echo "version_info=$VERSION_INFO" >> $GITHUB_OUTPUT
+          echo "version_info=$VERSION_INFO"
+          
+          # Create upgrade info for PR description
+          UPGRADE_INFO=$(echo "$VERSION_INFO" | jq -r '
+            "## Xion " + .tag + " Release\n\n" +
+            "This pull request updates the Xion blockchain configuration to reflect the new `" + .tag + "` release.\n\n" +
+            "### Updates for the `" + .tag + "` release:\n\n" +
+            "* **Version and binaries update in `xion/chain.json`:**\n" +
+            "  * Updated `tag` and `recommended_version` to `" + .tag + "`.\n" +
+            "  * Updated binary URLs and checksums for multiple platforms.\n" +
+            "  * Updated the SDK version to `" + .sdk.version + "`.\n" +
+            "* **New `" + .name + "` entry in `xion/versions.json`:**\n" +
+            "  * Added metadata for the `" + .tag + "` release.\n" +
+            "  * Updated binary URLs, SDK version (`" + .sdk.version + "`), consensus version (`" + .consensus.version + "`), CosmWasm version (`" + .cosmwasm.version + "`), and IBC version (`" + .ibc.version + "`)."
+          ')
+          
+          echo "upgrade_info<<EOF" >> $GITHUB_OUTPUT
+          echo "$UPGRADE_INFO" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          echo "$UPGRADE_INFO"
+
+  # sync-to-cosmos-registry:
+  #   needs: [check-for-new-release, get-version-info]
+  #   if: needs.check-for-new-release.outputs.should_sync == 'true'
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #     pull-requests: write
+  #   env:
+  #     release_tag: ${{ needs.check-for-new-release.outputs.release_tag }}
+  #     version_info: ${{ needs.get-version-info.outputs.version_info }}
+  #     upgrade_info: ${{ needs.get-version-info.outputs.upgrade_info }}
+  #   steps:
+  #     - name: Check out cosmos/chain-registry
+  #       uses: actions/checkout@v4
+  #       with:
+  #         repository: cosmos/chain-registry
+  #         token: ${{ secrets.CHAIN_REGISTRY_TOKEN || secrets.GITHUB_TOKEN }}
+  #         fetch-depth: 0
+
+  #     - name: Extract version name
+  #       id: version_info
+  #       run: |
+  #         set -Eeuo pipefail
+  #         echo "version_tag=$(echo "$version_info" | jq -r '.tag')" >> $GITHUB_OUTPUT
+  #         echo "version_name=$(echo "$version_info" | jq -r '.name')" >> $GITHUB_OUTPUT
+
+  #     - name: Setup Git and Create Branch
+  #       id: create_branch
+  #       env:
+  #         NEW_BRANCH: "xion/mainnet-release-${{ steps.version_info.outputs.version_tag }}"
+  #         GH_TOKEN: ${{ secrets.CHAIN_REGISTRY_TOKEN || secrets.GITHUB_TOKEN }}
+  #       run: |
+  #         set -Eeuo pipefail
+          
+  #         # Configure git
+  #         git config user.name "github-actions[bot]"
+  #         git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+  #         # Ensure we can push to the repository (may need to fork)
+  #         if ! git remote get-url origin | grep -q "$(gh api user --jq .login)"; then
+  #           echo "Repository is not owned by current user, may need to fork first"
+  #           # Try to create a fork if needed
+  #           gh repo fork cosmos/chain-registry --default-branch-only --remote=true || echo "Fork may already exist"
+  #         fi
+          
+  #         # Check if the branch already exists
+  #         if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
+  #           echo "Branch $NEW_BRANCH already exists, checking it out"
+  #           git checkout ${NEW_BRANCH}
+  #         else
+  #           echo "Creating new branch $NEW_BRANCH"
+  #           git checkout -b $NEW_BRANCH
+  #         fi
+  #         echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+
+  #     - name: Update xion versions.json
+  #       env:
+  #         VERSIONS_FILE: "xion/versions.json"
+  #         VERSION_NAME: ${{ steps.version_info.outputs.version_name }}
+  #       run: |
+  #         set -Eeuo pipefail
+
+  #         # Check if version already exists and update or append
+  #         if jq -e --arg name "$VERSION_NAME" '.versions[] | select(.name == $name)' "$VERSIONS_FILE" > /dev/null; then
+  #           echo "Version $VERSION_NAME already exists, updating..."
+  #           jq --arg name "$VERSION_NAME" --argjson new "$version_info" '
+  #             .versions = (.versions | map(if .name == $name then . + $new else . end))
+  #           ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
+  #         else
+  #           echo "Version $VERSION_NAME does not exist, appending..."
+  #           jq --arg name "$VERSION_NAME" --argjson new "$version_info" '
+  #             .versions += [$new]
+  #           ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
+  #         fi
+          
+  #     - name: Update xion chain.json
+  #       env:
+  #         CHAIN_FILE: "xion/chain.json"
+  #       run: |
+  #         set -Eeuo pipefail
+
+  #         # Update chain.json
+  #         echo "Updating chain.json with new version info"
+  #         jq --argjson new "$version_info" '
+  #           .codebase += ($new | del(.name))
+  #         ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
+
+  #     - name: Commit and push changes
+  #       run: |
+  #         set -Eeuo pipefail
+          
+  #         # Add and commit changes
+  #         git add xion/versions.json xion/chain.json
+          
+  #         if git diff --staged --quiet; then
+  #           echo "No changes to commit"
+  #           echo "changes_made=false" >> $GITHUB_OUTPUT
+  #           exit 0
+  #         fi
+          
+  #         git commit -m "xion mainnet release ${{ steps.version_info.outputs.version_tag }}"
+          
+  #         # Push to origin (may be a fork)
+  #         if ! git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} 2>/dev/null; then
+  #           echo "Failed to push to origin, trying to push to fork"
+  #           git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} --force
+  #         fi
+          
+  #         echo "changes_made=true" >> $GITHUB_OUTPUT
+
+  #     - name: Create Pull Request
+  #       env:
+  #         GH_TOKEN: ${{ secrets.CHAIN_REGISTRY_TOKEN || secrets.GITHUB_TOKEN }}
+  #         NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
+  #         VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
+  #       run: |
+  #         set -Eeuo pipefail
+
+  #         # Check if PR already exists
+  #         existing_pr=$(gh pr list --repo cosmos/chain-registry --head "$NEW_BRANCH" --json number --jq '.[0].number // empty' || echo "")
+          
+  #         if [ -n "$existing_pr" ]; then
+  #           echo "PR #$existing_pr already exists for branch $NEW_BRANCH"
+  #           gh pr edit "$existing_pr" --repo cosmos/chain-registry --body "$upgrade_info"
+  #           echo "Updated existing PR #$existing_pr"
+  #         else
+  #           # Get the current user to construct the head reference
+  #           current_user=$(gh api user --jq .login)
+  #           head_ref="${current_user}:${NEW_BRANCH}"
+            
+  #           pr_url=$(gh pr create \
+  #             --repo cosmos/chain-registry \
+  #             --base master \
+  #             --title "xion mainnet release $VERSION_TAG" \
+  #             --body "$upgrade_info" \
+  #             --head "$head_ref" || echo "")
+            
+  #           if [ -n "$pr_url" ]; then
+  #             echo "Created new PR: $pr_url"
+  #           else
+  #             echo "Failed to create PR, it may already exist or there was an error"
+  #             # Try to find the PR by title as fallback
+  #             gh pr list --repo cosmos/chain-registry --search "xion mainnet release $VERSION_TAG" --json number,url --jq '.[] | "Found PR #" + (.number | tostring) + ": " + .url'
+  #           fi
+  #         fi 
