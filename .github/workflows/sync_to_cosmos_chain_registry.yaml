@@ -226,6 +226,8 @@ jobs:
               .versions += [$new]
             ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
           fi
+
+          echo $VERSIONS_FILE
           
       - name: Update xion chain.json
         env:
@@ -238,6 +240,8 @@ jobs:
           jq --argjson new "$version_info" '
             .codebase += ($new | del(.name))
           ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
+
+          echo $CHAIN_FILE
 
   #     - name: Commit and push changes
   #       run: |
