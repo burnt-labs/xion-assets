@@ -241,52 +241,51 @@ jobs:
             .codebase += ($new | del(.name))
           ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
 
-          echo $CHAIN_FILE
 
-  #     - name: Commit and push changes
-  #       run: |
-  #         set -Eeuo pipefail
+      - name: Commit and push changes
+        run: |
+          set -Eeuo pipefail
           
-  #         # Add and commit changes
-  #         git add xion/versions.json xion/chain.json
+          # Add and commit changes
+          git add xion/versions.json xion/chain.json
           
-  #         if git diff --staged --quiet; then
-  #           echo "No changes to commit"
-  #           echo "changes_made=false" >> $GITHUB_OUTPUT
-  #           exit 0
-  #         fi
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "changes_made=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
           
-  #         git commit -m "xion mainnet release ${{ steps.version_info.outputs.version_tag }}"
+          git commit -m "xion mainnet release ${{ steps.version_info.outputs.version_tag }}"
           
-  #         # Push to origin (may be a fork)
-  #         if ! git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} 2>/dev/null; then
-  #           echo "Failed to push to origin, trying to push to fork"
-  #           git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} --force
-  #         fi
+          # Push to origin
+          if ! git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} 2>/dev/null; then
+            echo "Failed to push to origin, trying to push to fork"
+            git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }} --force
+          fi
           
-  #         echo "changes_made=true" >> $GITHUB_OUTPUT
+          echo "changes_made=true" >> $GITHUB_OUTPUT
 
-  #     - name: Create Pull Request
-  #       env:
-  #         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
-  #         VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
-  #       run: |
-  #         set -Eeuo pipefail
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
+          VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
+        run: |
+          set -Eeuo pipefail
 
-  #         # Create PR from burnt-labs fork to cosmos/chain-registry
-  #         pr_url=$(gh pr create \
-  #           --repo cosmos/chain-registry \
-  #           --base master \
-  #           --title "xion mainnet release $VERSION_TAG" \
-  #           --body "$upgrade_info" \
-  #           --head "burnt-labs:$NEW_BRANCH")
+          # Create PR from burnt-labs fork to cosmos/chain-registry
+          pr_url=$(gh pr create \
+            --repo cosmos/chain-registry \
+            --base master \
+            --title "xion mainnet release $VERSION_TAG" \
+            --body "$upgrade_info" \
+            --head "burnt-labs:$NEW_BRANCH")
           
-  #         echo "Created PR: $pr_url"
-  #         if [ -n "$pr_url" ]; then
-  #           echo "Created new PR: $pr_url"
-  #         else
-  #           echo "Failed to create PR, it may already exist or there was an error"
-  #           # Try to find the PR by title as fallback
-  #           gh pr list --repo cosmos/chain-registry --search "xion mainnet release $VERSION_TAG" --json number,url --jq '.[] | "Found PR #" + (.number | tostring) + ": " + .url'
-  #         fi 
+          echo "Created PR: $pr_url"
+          if [ -n "$pr_url" ]; then
+            echo "Created new PR: $pr_url"
+          else
+            echo "Failed to create PR, it may already exist or there was an error"
+            # Try to find the PR by title as fallback
+            gh pr list --repo cosmos/chain-registry --search "xion mainnet release $VERSION_TAG" --json number,url --jq '.[] | "Found PR #" + (.number | tostring) + ": " + .url'
+          fi 
