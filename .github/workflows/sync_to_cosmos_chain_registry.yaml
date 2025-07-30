@@ -58,7 +58,7 @@ jobs:
           
           if [ "$processed" -gt 0 ] && [ "$FORCE_SYNC" != "true" ]; then
             echo "Release $latest_release already processed, skipping"
-            echo "should_sync=false" >> $GITHUB_OUTPUT
+            echo "should_sync=true" >> $GITHUB_OUTPUT
           else
             echo "New release $latest_release found, will sync"
             echo "release_tag=$latest_release" >> $GITHUB_OUTPUT
