@@ -21,7 +21,7 @@ jobs:
   check-for-new-release:
     runs-on: ubuntu-latest
     outputs:
-      release_tag: v.20.0.0 #${{ steps.check_release.outputs.release_tag }}
+      release_tag: v20.0.0 #${{ steps.check_release.outputs.release_tag }}
       should_sync: 'true' #${{ steps.check_release.outputs.should_sync }}
     steps:
       - name: Check out code
