@@ -2,11 +2,7 @@ name: Sync to Cosmos Chain Registry
 
 # This workflow triggers on merge to main and creates PRs in cosmos/chain-registry
 # for new xion releases. It requires a GitHub token with permissions to:
-# - Fork and create PRs in cosmos/chain-registry
-# 
-# Setup required:
-# 1. Create a GitHub Personal Access Token with repo permissions
-# 2. Add it as a repository secret named CHAIN_REGISTRY_TOKEN
+# - Create PRs in cosmos/chain-registry
 
 on:
   push:
@@ -52,11 +48,11 @@ jobs:
           echo "Latest release: $latest_release"
           
           # Check if we've already processed this release (this still needs auth for reliable access)
-          if [ -n "${{ secrets.CHAIN_REGISTRY_TOKEN }}" ]; then
-            export GH_TOKEN="${{ secrets.CHAIN_REGISTRY_TOKEN }}"
+          if [ -n "${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}" ]; then
+            export GH_TOKEN="${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}"
             processed=$(gh pr list --repo cosmos/chain-registry --state all --search "xion mainnet release $latest_release" --json number --jq 'length' || echo "0")
           else
-            echo "No CHAIN_REGISTRY_TOKEN found, skipping duplicate check (will rely on later PR creation step to handle duplicates)"
+            echo "No token found, skipping duplicate check (will rely on later PR creation step to handle duplicates)"
             processed=0
           fi
           
@@ -241,7 +237,6 @@ jobs:
             .codebase += ($new | del(.name))
           ' "$CHAIN_FILE" > "$CHAIN_FILE.tmp" && mv "$CHAIN_FILE.tmp" "$CHAIN_FILE"
 
-
       - name: Commit and push changes
         run: |
           set -Eeuo pipefail
@@ -267,7 +262,7 @@ jobs:
 
       - name: Create Pull Request
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}
           NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
           VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
         run: |
