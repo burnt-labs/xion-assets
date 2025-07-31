@@ -93,6 +93,7 @@ jobs:
             --base master \
             --title "Update xion chain registry files" \
             --body "Automated sync of xion chain registry files from xion-assets repository" \
+            --reviewer "@devops" \
             --head "burnt-labs:$NEW_BRANCH")
           
           echo "Created PR: $pr_url"
