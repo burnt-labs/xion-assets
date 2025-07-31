@@ -37,16 +37,17 @@ jobs:
       - name: Setup Git and Create Branch
         id: create_branch
         working-directory: chain-registry
-        env:
-          NEW_BRANCH: "xion/sync-$(date +%Y%m%d-%H%M%S)"
         run: |
           set -Eeuo pipefail
+          
+          # Generate branch name with timestamp
+          NEW_BRANCH="xion/sync-$(date +%Y%m%d-%H%M%S)"
+          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          git checkout -b $NEW_BRANCH
-          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+          git checkout -b "$NEW_BRANCH"
 
       - name: Copy updated files
         run: |
