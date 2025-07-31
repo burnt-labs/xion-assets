@@ -78,10 +78,11 @@ jobs:
           echo "changes_made=true" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request
+        if: steps.commit_changes.outputs.changes_made == 'true'
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}
           NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
-          VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
+        working-directory: chain-registry
         run: |
           set -Eeuo pipefail
 
@@ -89,8 +90,8 @@ jobs:
           pr_url=$(gh pr create \
             --repo cosmos/chain-registry \
             --base master \
-            --title "xion mainnet release $VERSION_TAG" \
-            --body "$upgrade_info" \
+            --title "Update xion chain registry files" \
+            --body "Automated sync of xion chain registry files from xion-assets repository" \
             --head "burnt-labs:$NEW_BRANCH")
           
           echo "Created PR: $pr_url"
@@ -98,6 +99,4 @@ jobs:
             echo "Created new PR: $pr_url"
           else
             echo "Failed to create PR, it may already exist or there was an error"
-            # Try to find the PR by title as fallback
-            gh pr list --repo cosmos/chain-registry --search "xion mainnet release $VERSION_TAG" --json number,url --jq '.[] | "Found PR #" + (.number | tostring) + ": " + .url'
-          fi 
+          fi
