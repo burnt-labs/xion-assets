@@ -406,7 +406,7 @@
             }
         },
 
-        // TODO: remove this after testing
+        // TODO: remove this after testing 
         {
             "name": "v99-test",
             "tag": "v99.9.9-test",
@@ -436,6 +436,6 @@
                 "version": "v8.7.0"
             }
         }
-        // TODO: remove this after testing
+        // TODO: remove this after testing 
     ]
 }
