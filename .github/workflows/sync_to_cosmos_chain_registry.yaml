@@ -4,8 +4,7 @@ name: Sync to Cosmos Chain Registry
 # for new xion releases. It requires a classic GitHub token.
 
 on:
-  pull_request:
-    types: [closed]
+  push:
     branches:
       - main
     paths:
