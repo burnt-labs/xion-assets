@@ -80,7 +80,7 @@ jobs:
       - name: Create Pull Request
         if: steps.commit_changes.outputs.changes_made == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION_2 }}
           NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
         working-directory: chain-registry
         run: |
