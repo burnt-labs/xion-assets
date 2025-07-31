@@ -1,19 +1,21 @@
 name: Sync to Cosmos Chain Registry
 
 # This workflow triggers on merge to main and creates PRs in cosmos/chain-registry
-# for new xion releases. It requires a GitHub token with permissions to:
-# - Create PRs in cosmos/chain-registry
+# for new xion releases. It requires a classic GitHub token.
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      # - main TODO
-      - feat/do84-create-pr-in-cosmos
+      - main
     paths:
       - 'public/chain-registry/**'
 
 jobs:
   sync-to-cosmos-registry:
+
+    if: github.event.pull_request.merged == true
+    
     runs-on: ubuntu-latest
     permissions:
       contents: write
