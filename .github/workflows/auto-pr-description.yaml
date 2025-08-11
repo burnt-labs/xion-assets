@@ -1,0 +1,194 @@
+name: Auto PR Description with Claude
+
+on:
+  push:
+    branches:
+      - feat/automate-pr-description-with-claude
+      - '!main'
+      - '!master'
+    # Exclude pushes to main/master since we want PRs targeting these branches
+
+env:
+  CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+
+jobs:
+  generate-pr-description:
+    runs-on: ubuntu-latest
+    if: github.ref != 'refs/heads/main' && github.ref != 'refs/heads/master'
+    
+    steps:
+      - name: Check if repository is public
+        run: |
+          if [ "${{ github.event.repository.private }}" = "true" ]; then
+            echo "❌ This workflow only runs on public repositories for security reasons."
+            echo "Repository is private - stopping execution."
+            exit 1
+          else
+            echo "✅ Repository is public - proceeding with workflow."
+          fi
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch full history to compare with main/master
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Get changes and generate PR description
+        id: generate-description
+        run: |
+          # Determine the base branch (main or master)
+          if git show-ref --verify --quiet refs/remotes/origin/main; then
+            BASE_BRANCH="origin/main"
+          elif git show-ref --verify --quiet refs/remotes/origin/master; then
+            BASE_BRANCH="origin/master"
+          else
+            echo "No main or master branch found, using HEAD~1"
+            BASE_BRANCH="HEAD~1"
+          fi
+          
+          echo "Base branch: $BASE_BRANCH"
+          
+          # Get the diff
+          DIFF=$(git diff $BASE_BRANCH...HEAD)
+          
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only $BASE_BRANCH...HEAD)
+          
+          # Get commit messages
+          COMMIT_MESSAGES=$(git log $BASE_BRANCH...HEAD --pretty=format:"- %s" --no-merges)
+          
+          # Prepare the prompt for Claude
+          cat > prompt.txt << 'EOF'
+          You are a technical writing assistant. Based on the following code changes, generate a clear and professional Pull Request description.
+
+          Please analyze the changes and provide:
+          1. A brief summary of what was changed
+          2. Key modifications or new features
+          3. Any breaking changes or important notes
+          4. Testing considerations if applicable
+
+          Format the response in markdown and keep it concise but informative.
+
+          ## Changed Files:
+          CHANGED_FILES_PLACEHOLDER
+
+          ## Commit Messages:
+          COMMIT_MESSAGES_PLACEHOLDER
+
+          ## Code Diff:
+          ```diff
+          DIFF_PLACEHOLDER
+          ```
+          EOF
+          
+          # Replace placeholders (handle special characters properly)
+          sed -i "s/CHANGED_FILES_PLACEHOLDER/$(echo "$CHANGED_FILES" | sed 's/[[\.*^$()+?{|]/\\&/g')/" prompt.txt
+          sed -i "s/COMMIT_MESSAGES_PLACEHOLDER/$(echo "$COMMIT_MESSAGES" | sed 's/[[\.*^$()+?{|]/\\&/g')/" prompt.txt
+          
+          # For diff, we need to be more careful with special characters
+          echo "$DIFF" > diff_temp.txt
+          sed -i '/DIFF_PLACEHOLDER/r diff_temp.txt' prompt.txt
+          sed -i '/DIFF_PLACEHOLDER/d' prompt.txt
+          
+          # Call Claude API
+          RESPONSE=$(curl -s -X POST https://api.anthropic.com/v1/messages \
+            -H "Content-Type: application/json" \
+            -H "x-api-key: $CLAUDE_API_KEY" \
+            -H "anthropic-version: 2023-06-01" \
+            -d @<(cat << EOF
+          {
+            "model": "claude-3-5-sonnet-20241022",
+            "max_tokens": 1000,
+            "messages": [
+              {
+                "role": "user",
+                "content": "$(cat prompt.txt | jq -Rs .)"
+              }
+            ]
+          }
+          EOF
+          ))
+          
+          # Extract the description from Claude's response
+          DESCRIPTION=$(echo "$RESPONSE" | jq -r '.content[0].text // "Failed to generate description"')
+          
+          # Save description to file and environment
+          echo "$DESCRIPTION" > pr_description.md
+          echo "PR_DESCRIPTION<<EOF" >> $GITHUB_OUTPUT
+          echo "$DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Also set as environment variable for next steps
+          {
+            echo "PR_DESCRIPTION<<EOF"
+            echo "$DESCRIPTION"
+            echo "EOF"
+          } >> $GITHUB_ENV
+          
+      - name: Check if PR exists
+        id: check-pr
+        run: |
+          # Check if there's already a PR for this branch
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          echo "Branch name: $BRANCH_NAME"
+          
+          # Get existing PR number if it exists
+          PR_NUMBER=$(gh pr list --head "$BRANCH_NAME" --json number --jq '.[0].number // empty')
+          
+          if [ -n "$PR_NUMBER" ]; then
+            echo "pr_exists=true" >> $GITHUB_OUTPUT
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+            echo "Found existing PR #$PR_NUMBER"
+          else
+            echo "pr_exists=false" >> $GITHUB_OUTPUT
+            echo "No existing PR found"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+          
+      - name: Create new PR
+        if: steps.check-pr.outputs.pr_exists == 'false'
+        run: |
+          BRANCH_NAME=${GITHUB_REF#refs/heads/}
+          
+          # Determine target branch
+          if git show-ref --verify --quiet refs/remotes/origin/main; then
+            TARGET_BRANCH="main"
+          else
+            TARGET_BRANCH="master"
+          fi
+          
+          # Create PR with generated description
+          gh pr create \
+            --title "Auto-generated PR: $BRANCH_NAME" \
+            --body "$PR_DESCRIPTION" \
+            --base "$TARGET_BRANCH" \
+            --head "$BRANCH_NAME"
+            
+          echo "✅ Created new PR with Claude-generated description"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          
+      - name: Update existing PR
+        if: steps.check-pr.outputs.pr_exists == 'true'
+        run: |
+          # Update the existing PR description
+          gh pr edit ${{ steps.check-pr.outputs.pr_number }} \
+            --body "$PR_DESCRIPTION"
+            
+          echo "✅ Updated PR #${{ steps.check-pr.outputs.pr_number }} with new Claude-generated description"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-description
+          path: |
+            pr_description.md
+            prompt.txt
+          retention-days: 7
