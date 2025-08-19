@@ -11,7 +11,7 @@ jobs:
     if: github.event.repository.private == false # NOTICE: only run on public repositories to avoid potential security risks with private code
     #
     steps:
-      - uses: jacsamell/github-pr-bot@v1
+      - uses: jacsamell/github-pr-bot@v1.0.10 # ref: https://github.com/marketplace/actions/ai-powered-pr-bot
         with:
           anthropic_api_key: ${{ secrets.CLAUDE_API_KEY }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
