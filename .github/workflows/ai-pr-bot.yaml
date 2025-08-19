@@ -1,0 +1,20 @@
+name: AI PR Bot
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+jobs:
+  ai-pr-bot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jacsamell/github-pr-bot@v1
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          auto_review: true
+          auto_describe: true
+          auto_improve: false
+          enable_auto_approval: false
+          model: 'anthropic/claude-sonnet-4-20250514'
+          max_model_tokens: '1000000'
+          require_trigger: false

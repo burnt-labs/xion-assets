@@ -3,7 +3,7 @@ name: Auto PR Description with Claude
 on:
   push:
     branches:
-      - feat/automate-pr-description-with-claude
+      - 'sfsdfsd' #feat/automate-pr-description-with-claude
       - '!main'
       - '!master'
     # Exclude pushes to main/master since we want PRs targeting these branches
