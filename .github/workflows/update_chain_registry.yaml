@@ -197,4 +197,4 @@ jobs:
             --title "upgrade: upgrade $VERSION_TAG to $NETWORK_NAME chain registry" \
             --body "Updates $NETWORK_NAME versions.json and chain.json with $VERSION_TAG release information" \
             --head "$NEW_BRANCH" \
-            --reviewer "@devops"
+            --reviewer "burnt-labs/devops"

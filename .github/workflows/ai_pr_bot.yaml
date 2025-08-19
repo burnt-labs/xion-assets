@@ -8,7 +8,7 @@ jobs:
   ai-pr-bot:
     runs-on: ubuntu-latest
     #
-    if: github.event.repository.private == false # NOTICE: only run on public repositories
+    if: github.event.repository.private == false # NOTICE: only run on public repositories to avoid potential security risks with private code
     #
     steps:
       - uses: jacsamell/github-pr-bot@v1
