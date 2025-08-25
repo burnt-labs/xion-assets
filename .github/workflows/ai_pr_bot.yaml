@@ -22,3 +22,4 @@ jobs:
           model: 'anthropic/claude-sonnet-4-20250514'
           max_model_tokens: '100000'
           require_trigger: false
+
