@@ -1,6 +1,9 @@
 name: Update Chain Registry Versions
 
 on:
+  release:
+    # ref: https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#release
+    types: [published, prereleased] 
   workflow_dispatch:
     inputs:
       release_tag:
@@ -20,7 +23,7 @@ jobs:
     outputs:
       version_info: ${{ steps.extract_info.outputs.version_info }}
     env:
-      release_tag: ${{ inputs.release_tag }}  
+      release_tag: ${{ github.event.release.tag_name || inputs.release_tag }}
     steps:
       - name: Generate Binary Info
         id: binary_info
@@ -194,5 +197,4 @@ jobs:
             --title "upgrade: upgrade $VERSION_TAG to $NETWORK_NAME chain registry" \
             --body "Updates $NETWORK_NAME versions.json and chain.json with $VERSION_TAG release information" \
             --head "$NEW_BRANCH" \
-            --reviewer "2xburnt" \
-            --reviewer "wehappyfew"
+            --reviewer "burnt-labs/devops"
