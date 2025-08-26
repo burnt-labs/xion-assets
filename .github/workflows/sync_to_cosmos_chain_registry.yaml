@@ -1,0 +1,103 @@
+name: Sync to Cosmos Chain Registry
+
+# This workflow triggers on merge to main and creates PRs in cosmos/chain-registry
+# for new xion releases. It requires a classic GitHub token.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'public/chain-registry/**'
+
+jobs:
+  sync-to-cosmos-registry:
+    
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Check out -> xion-assets repo
+        uses: actions/checkout@v4
+        with:
+          path: xion-assets
+
+      - name: Check out -> burnt-labs/chain-registry
+        uses: actions/checkout@v4
+        with:
+          repository: burnt-labs/chain-registry
+          token: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}
+          ref: xion/main
+          fetch-depth: 0
+          path: chain-registry
+
+      - name: Setup Git and Create Branch
+        id: create_branch
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+          
+          # Generate branch name with timestamp
+          NEW_BRANCH="xion/sync-$(date +%Y%m%d-%H%M%S)"
+          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+          
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git checkout -b "$NEW_BRANCH"
+
+      - name: Copy updated files
+        run: |
+          set -Eeuo pipefail
+          
+          # Copy all files from xion-assets to chain-registry
+          cp -r xion-assets/public/chain-registry/* chain-registry/
+          
+      - name: Check for changes and commit
+        id: commit_changes
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+          
+          git add .
+          
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+            echo "changes_made=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # Create commit message based on changed files
+          CHANGED_FILES=$(git diff --staged --name-only | head -5 | tr '\n' ', ' | sed 's/,$//')
+          git commit -m "Update xion chain registry files: $CHANGED_FILES"
+          
+          git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }}
+          echo "changes_made=true" >> $GITHUB_OUTPUT
+
+      - name: Create Pull Request
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION_2 }}
+          NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+
+          # Create PR from burnt-labs fork to cosmos/chain-registry
+          pr_url=$(gh pr create \
+            --repo cosmos/chain-registry \
+            --base master \
+            --title "Update xion chain registry files" \
+            --body "Automated sync of xion chain registry files from xion-assets repository" \
+            --reviewer "@devops" \
+            --head "burnt-labs:$NEW_BRANCH")
+          
+          echo "Created PR: $pr_url"
+          if [ -n "$pr_url" ]; then
+            echo "Created new PR: $pr_url"
+          else
+            echo "Failed to create PR, it may already exist or there was an error"
+          fi
+          
