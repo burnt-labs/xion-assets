@@ -1,0 +1,22 @@
+name: Slack Notification
+on:
+  push:
+    branches: [ feat/post-to-slack ]
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Post to Slack
+      uses: slackapi/slack-github-action@v1.26.0
+      env:
+        SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_USER_OAUTH_TOKEN }}
+      with:
+        channel-id: 'C03KMPD1W5Q'  # Devops channel
+        slack-message: |
+          🚀 *Deployment Status*
+          Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+          Commit: ${{ github.sha }}
+          Status: Success ✅
+          Note: He is here ! He is there ! He is f@&&ing everywhere ! :P
