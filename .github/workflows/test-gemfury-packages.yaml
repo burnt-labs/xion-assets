@@ -1,0 +1,144 @@
+name: Test Package Installations
+
+on:
+  workflow_dispatch:
+#   schedule:
+#     # Run daily at 00:00 UTC
+#     - cron: '0 0 * * *'
+  push:
+    branches:
+    #   - main
+    - feat/validate-gemfury-packages
+    # paths:
+    #   - 'test-gemfury-packages/Dockerfile.test-*'
+    #   - 'test-gemfury-packages/test-all-packages.sh'
+    #   - '.github/workflows/test-packages.yaml'
+
+# Environment variables for package versions
+env:
+  DEB_VERSION: "21.0.1"
+  RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
+  APK_VERSION: "21.0.1"
+
+jobs:
+  test-deb:
+    name: Test DEB Package (apt)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test DEB package
+        working-directory: test-gemfury-packages
+        env:
+          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
+        run: |
+          echo "=== Testing DEB (Ubuntu/Debian - apt) ==="
+          echo "Target version: ${DEB_VERSION}"
+          
+          # Build the Docker image
+          docker build -f Dockerfile.test-deb \
+            --build-arg XIOND_VERSION=${DEB_VERSION} \
+            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
+            -t xiond-test-deb:${DEB_VERSION} .
+          
+          # Get installed version
+          INSTALLED_VERSION=$(docker run --rm xiond-test-deb:${DEB_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches
+          if [ "$INSTALLED_VERSION_CLEAN" = "$DEB_VERSION" ]; then
+            echo "✓ DEB installation successful - Version: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $DEB_VERSION"
+          else
+            echo "✗ DEB version mismatch - Expected: $DEB_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-deb:${DEB_VERSION} xiond version --long
+
+  test-rpm:
+    name: Test RPM Package (yum)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test RPM package
+        working-directory: test-gemfury-packages
+        env:
+          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
+        run: |
+          echo "=== Testing RPM (Rocky Linux - yum) ==="
+          echo "Target package version: ${RPM_VERSION}"
+          
+          # Extract base version for comparison (xiond version outputs base version without release number)
+          RPM_BASE_VERSION=$(echo $RPM_VERSION | cut -d'-' -f1)
+          echo "Expected xiond binary version: ${RPM_BASE_VERSION}"
+          
+          # Build the Docker image (full version control - pass complete version)
+          docker build -f Dockerfile.test-rpm \
+            --build-arg XIOND_VERSION=${RPM_VERSION} \
+            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
+            -t xiond-test-rpm:${RPM_VERSION} .
+          
+          # Get installed version (xiond version command outputs base version without release number)
+          INSTALLED_VERSION=$(docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches (xiond version output is base version, not package version)
+          if [ "$INSTALLED_VERSION_CLEAN" = "$RPM_BASE_VERSION" ]; then
+            echo "✓ RPM installation successful - Package: ${RPM_VERSION}, Binary: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $RPM_BASE_VERSION"
+          else
+            echo "✗ RPM version mismatch - Expected: $RPM_BASE_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version --long
+
+  test-apk:
+    name: Test APK Package (apk)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test APK package
+        working-directory: test-gemfury-packages
+        env:
+          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
+        run: |
+          echo "=== Testing APK (Alpine Linux - apk) ==="
+          echo "Target version: ${APK_VERSION}"
+          
+          # Build the Docker image
+          docker build -f Dockerfile.test-apk \
+            --build-arg XIOND_VERSION=${APK_VERSION} \
+            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
+            -t xiond-test-apk:${APK_VERSION} .
+          
+          # Get installed version
+          INSTALLED_VERSION=$(docker run --rm xiond-test-apk:${APK_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches
+          if [ "$INSTALLED_VERSION_CLEAN" = "$APK_VERSION" ]; then
+            echo "✓ APK installation successful - Version: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $APK_VERSION"
+          else
+            echo "✗ APK version mismatch - Expected: $APK_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
+

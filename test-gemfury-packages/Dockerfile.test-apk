@@ -1,0 +1,30 @@
+FROM alpine:latest
+
+# Environment variables for credentials (if needed for future private repo access)
+ARG GEMFURY_TOKEN
+
+ENV GEMFURY_TOKEN=${GEMFURY_TOKEN:-"--ADD-HERE-YOUR-VALUE--"}
+
+# Install wget for downloading the repository key
+RUN apk add --no-cache wget
+
+# Download and add the Burnt repository signing key
+RUN wget -qO - https://alpine.fury.io/burnt/burnt@fury.io-b8abd990.rsa.pub | \
+    tee /etc/apk/keys/burnt@fury.io-b8abd990.rsa.pub
+
+# Add the Burnt Gemfury repository
+RUN echo "https://alpine.fury.io/burnt" | tee -a /etc/apk/repositories
+
+# Update apk cache
+RUN apk update
+
+# Install xiond - version can be specified at build time
+ARG XIOND_VERSION=21.0.1
+RUN apk add xiond=${XIOND_VERSION}
+
+# Verify installation
+RUN xiond version
+
+# Set default command to show version info
+CMD ["xiond", "version", "--long"]
+
