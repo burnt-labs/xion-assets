@@ -1,22 +1,19 @@
-name: Test Package Installations
+name: Validate Gemfury Packages
 
 on:
   workflow_dispatch:
-#   schedule:
-#     # Run daily at 00:00 UTC
-#     - cron: '0 0 * * *'
+  schedule:
+    # Run every Monday at 12:00 PM (EET/EEST, UTC+2/UTC+3)
+    # Using UTC+2 (EET) = 10:00 UTC
+    - cron: '0 10 * * 1'
   push:
     branches:
     #   - main
     - feat/validate-gemfury-packages
-    # paths:
-    #   - 'test-gemfury-packages/Dockerfile.test-*'
-    #   - 'test-gemfury-packages/test-all-packages.sh'
-    #   - '.github/workflows/test-packages.yaml'
 
-# Environment variables for package versions
+# Environment variables
 env:
-  DEB_VERSION: "21.0.1"
+  DEB_VERSION: "21.0.2"
   RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
   APK_VERSION: "21.0.1"
 
@@ -132,4 +129,35 @@ jobs:
           echo ""
           echo "Detailed version information:"
           docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
+
+  notify-slack:
+    name: Notify Slack on Failure
+    runs-on: ubuntu-latest
+    needs: [test-deb, test-rpm, test-apk]
+    if: always()
+    steps:
+      - name: Check if any test failed
+        id: check-failures
+        run: |
+          if [ "${{ needs.test-deb.result }}" != "success" ] || \
+             [ "${{ needs.test-rpm.result }}" != "success" ] || \
+             [ "${{ needs.test-apk.result }}" != "success" ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "deb_status=${{ needs.test-deb.result }}" >> $GITHUB_OUTPUT
+            echo "rpm_status=${{ needs.test-rpm.result }}" >> $GITHUB_OUTPUT
+            echo "apk_status=${{ needs.test-apk.result }}" >> $GITHUB_OUTPUT
+          else
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send Slack notification on failure
+        if: steps.check-failures.outputs.has_failures == 'true'
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          webhook: ${{ secrets.GEMFURY_SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "🚨 Package Installation Tests Failed\n\nWorkflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
+            }
 
