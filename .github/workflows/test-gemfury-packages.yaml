@@ -158,12 +158,13 @@ jobs:
 
       - name: Send Slack notification on failure
         if: steps.check-failures.outputs.has_failures == 'true'
+        continue-on-error: true
         uses: slackapi/slack-github-action@v2.1.1
         with:
           webhook: ${{ secrets.GEMFURY_SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-            {
-              "text": "🚨 Package Installation Tests Failed\n\nWorkflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
-            }
+            text: "🚨 Package Installation Tests Failed
+            
+            Workflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
 
