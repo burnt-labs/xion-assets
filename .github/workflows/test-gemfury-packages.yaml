@@ -16,9 +16,9 @@ on:
 
 # Environment variables for package versions
 env:
-  DEB_VERSION: "21.0.1"
-  RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
-  APK_VERSION: "21.0.1"
+  DEB_VERSION: "21.0.2"
+  RPM_VERSION: "21.0.1-2"  # Full package version including release number for RPM
+  APK_VERSION: "21.0.2"
 
 jobs:
   test-deb:
