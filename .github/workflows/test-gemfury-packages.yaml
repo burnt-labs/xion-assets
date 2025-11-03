@@ -16,9 +16,9 @@ on:
 
 # Environment variables for package versions
 env:
-  DEB_VERSION: "21.0.2"
-  RPM_VERSION: "21.0.1-2"  # Full package version including release number for RPM
-  APK_VERSION: "21.0.2"
+  DEB_VERSION: "21.0.1"
+  RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
+  APK_VERSION: "21.0.1"
 
 jobs:
   test-deb:
@@ -30,8 +30,6 @@ jobs:
 
       - name: Build and test DEB package
         working-directory: test-gemfury-packages
-        env:
-          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
         run: |
           echo "=== Testing DEB (Ubuntu/Debian - apt) ==="
           echo "Target version: ${DEB_VERSION}"
@@ -39,7 +37,6 @@ jobs:
           # Build the Docker image
           docker build -f Dockerfile.test-deb \
             --build-arg XIOND_VERSION=${DEB_VERSION} \
-            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
             -t xiond-test-deb:${DEB_VERSION} .
           
           # Get installed version
@@ -69,8 +66,6 @@ jobs:
 
       - name: Build and test RPM package
         working-directory: test-gemfury-packages
-        env:
-          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
         run: |
           echo "=== Testing RPM (Rocky Linux - yum) ==="
           echo "Target package version: ${RPM_VERSION}"
@@ -82,7 +77,6 @@ jobs:
           # Build the Docker image (full version control - pass complete version)
           docker build -f Dockerfile.test-rpm \
             --build-arg XIOND_VERSION=${RPM_VERSION} \
-            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
             -t xiond-test-rpm:${RPM_VERSION} .
           
           # Get installed version (xiond version command outputs base version without release number)
@@ -112,8 +106,6 @@ jobs:
 
       - name: Build and test APK package
         working-directory: test-gemfury-packages
-        env:
-          GEMFURY_TOKEN: ${{ secrets.GEMFURY_TOKEN }}
         run: |
           echo "=== Testing APK (Alpine Linux - apk) ==="
           echo "Target version: ${APK_VERSION}"
@@ -121,7 +113,6 @@ jobs:
           # Build the Docker image
           docker build -f Dockerfile.test-apk \
             --build-arg XIOND_VERSION=${APK_VERSION} \
-            --build-arg GEMFURY_TOKEN=${GEMFURY_TOKEN} \
             -t xiond-test-apk:${APK_VERSION} .
           
           # Get installed version
