@@ -138,16 +138,22 @@ jobs:
     steps:
       - name: Check if any test failed
         id: check-failures
+        continue-on-error: true
         run: |
-          if [ "${{ needs.test-deb.result }}" != "success" ] || \
-             [ "${{ needs.test-rpm.result }}" != "success" ] || \
-             [ "${{ needs.test-apk.result }}" != "success" ]; then
+          DEB_RESULT="${{ needs.test-deb.result }}"
+          RPM_RESULT="${{ needs.test-rpm.result }}"
+          APK_RESULT="${{ needs.test-apk.result }}"
+          
+          echo "DEB result: $DEB_RESULT"
+          echo "RPM result: $RPM_RESULT"
+          echo "APK result: $APK_RESULT"
+          
+          if [ "$DEB_RESULT" != "success" ] || [ "$RPM_RESULT" != "success" ] || [ "$APK_RESULT" != "success" ]; then
             echo "has_failures=true" >> $GITHUB_OUTPUT
-            echo "deb_status=${{ needs.test-deb.result }}" >> $GITHUB_OUTPUT
-            echo "rpm_status=${{ needs.test-rpm.result }}" >> $GITHUB_OUTPUT
-            echo "apk_status=${{ needs.test-apk.result }}" >> $GITHUB_OUTPUT
+            echo "Found failures - will send notification"
           else
             echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "All tests passed - no notification needed"
           fi
 
       - name: Send Slack notification on failure
