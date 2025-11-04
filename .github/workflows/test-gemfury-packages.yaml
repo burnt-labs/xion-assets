@@ -161,10 +161,11 @@ jobs:
         continue-on-error: true
         uses: slackapi/slack-github-action@v2.1.1
         with:
-          webhook: ${{ secrets.GEMFURY_SLACK_WEBHOOK_URL }}
-          webhook-type: incoming-webhook
+          method: chat.postMessage
+          token: ${{ secrets.GEMFURY_SLACK_BOT_TOKEN }}
           payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_CHANNEL_ID }}
             text: "🚨 Package Installation Tests Failed
-            
             Workflow: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+        
 
