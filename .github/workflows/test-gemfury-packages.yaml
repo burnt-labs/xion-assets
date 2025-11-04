@@ -6,9 +6,9 @@ on:
     # Run every Monday at 12:00 PM (EET/EEST, UTC+2/UTC+3)
     # Using UTC+2 (EET) = 10:00 UTC
     - cron: '0 10 * * 1'
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
 
 # Environment variables
 env: #TODO - make this dynamic
