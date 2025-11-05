@@ -8,12 +8,11 @@ on:
     - cron: '0 10 * * 1'
   push:
     branches:
-      # - main
-      - feat/validate-gemfury-packages
+      - main
 
 # Environment variables
 env: #TODO - make this dynamic
-  DEB_VERSION: "21.0.2"
+  DEB_VERSION: "21.0.1"
   RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
   APK_VERSION: "21.0.1"
 
