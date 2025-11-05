@@ -14,6 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Use individual version env vars, fall back to argument, then default
+# Note: RPM_VERSION should include release number (e.g., "21.0.1-1") when using Gemfury
 DEFAULT_VERSION=${1:-21.0.1}
 DEB_VERSION=${DEB_VERSION:-${DEFAULT_VERSION}}
 RPM_VERSION=${RPM_VERSION:-${DEFAULT_VERSION}}
@@ -43,6 +44,10 @@ if docker build -f Dockerfile.test-deb --build-arg XIOND_VERSION=${DEB_VERSION} 
     INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
     if [ "$INSTALLED_VERSION_CLEAN" = "$DEB_VERSION" ]; then
         echo "✓ DEB installation successful - Version: $INSTALLED_VERSION"
+        echo "Installed version matches expected: $DEB_VERSION"
+        echo ""
+        echo "Detailed version information:"
+        docker run --rm xiond-test-deb:${DEB_VERSION} xiond version --long
     else
         echo "✗ DEB version mismatch - Expected: $DEB_VERSION, Got: $INSTALLED_VERSION"
         FAILED=$((FAILED + 1))
@@ -63,6 +68,10 @@ if docker build -f Dockerfile.test-rpm --build-arg XIOND_VERSION=${RPM_VERSION} 
     # xiond version outputs base version (without release number), so compare against base version
     if [ "$INSTALLED_VERSION_CLEAN" = "$RPM_BASE_VERSION" ]; then
         echo "✓ RPM installation successful - Package: ${RPM_VERSION}, Binary: $INSTALLED_VERSION"
+        echo "Installed version matches expected: $RPM_BASE_VERSION"
+        echo ""
+        echo "Detailed version information:"
+        docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version --long
     else
         echo "✗ RPM version mismatch - Expected base: $RPM_BASE_VERSION, Got: $INSTALLED_VERSION"
         FAILED=$((FAILED + 1))
@@ -82,6 +91,10 @@ if docker build -f Dockerfile.test-apk --build-arg XIOND_VERSION=${APK_VERSION} 
     INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
     if [ "$INSTALLED_VERSION_CLEAN" = "$APK_VERSION" ]; then
         echo "✓ APK installation successful - Version: $INSTALLED_VERSION"
+        echo "Installed version matches expected: $APK_VERSION"
+        echo ""
+        echo "Detailed version information:"
+        docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
     else
         echo "✗ APK version mismatch - Expected: $APK_VERSION, Got: $INSTALLED_VERSION"
         FAILED=$((FAILED + 1))
