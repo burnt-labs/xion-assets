@@ -167,7 +167,7 @@ jobs:
             channel: ${{ secrets.DEVOPS_NOTIFICATIONS_SLACK_CHANNEL_ID }}
             text: "🚨 Gemfury Package Validation Failed: 
             <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
-          errors: warn
+          errors: false
           retries: 0
         
 
