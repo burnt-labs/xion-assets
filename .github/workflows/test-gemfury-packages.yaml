@@ -25,26 +25,40 @@ jobs:
         env:
           FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
         run: |
-          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond")
-          echo "API Response: $RESPONSE" | jq .
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond")
           
-          DEB_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "deb") | .latest_version.version // empty')
-          RPM_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "rpm") | .latest_version.version // empty')
-          APK_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "alpine") | .latest_version.version // empty')
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error: API returned HTTP $HTTP_CODE"
+            cat /tmp/response.json
+            exit 1
+          fi
+          
+          if ! jq empty /tmp/response.json 2>/dev/null; then
+            echo "Error: Invalid JSON response"
+            cat /tmp/response.json
+            exit 1
+          fi
+          
+          echo "API Response:"
+          cat /tmp/response.json | jq .
+          
+          DEB_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "deb") | .latest_version.version // empty')
+          RPM_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "rpm") | .latest_version.version // empty')
+          APK_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "alpine") | .latest_version.version // empty')
           
           if [ -z "$DEB_VERSION" ] || [ "$DEB_VERSION" = "null" ]; then
             echo "Error: Failed to get DEB version from Gemfury API"
-            echo "Response: $RESPONSE"
+            cat /tmp/response.json
             exit 1
           fi
           if [ -z "$RPM_VERSION" ] || [ "$RPM_VERSION" = "null" ]; then
             echo "Error: Failed to get RPM version from Gemfury API"
-            echo "Response: $RESPONSE"
+            cat /tmp/response.json
             exit 1
           fi
           if [ -z "$APK_VERSION" ] || [ "$APK_VERSION" = "null" ]; then
             echo "Error: Failed to get APK version from Gemfury API"
-            echo "Response: $RESPONSE"
+            cat /tmp/response.json
             exit 1
           fi
           
