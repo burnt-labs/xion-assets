@@ -8,18 +8,69 @@ on:
     - cron: '0 10 * * 1'
   push:
     branches:
-      - main
-
-# Environment variables
-env: #TODO - make this dynamic
-  DEB_VERSION: "21.0.1"
-  RPM_VERSION: "21.0.1-1"  # Full package version including release number for RPM
-  APK_VERSION: "21.0.1"
+      # - main
+      - feat/validate-gemfury-packages
 
 jobs:
+  get-latest-versions:
+    name: Get Latest Package Versions
+    runs-on: ubuntu-latest
+    outputs:
+      deb_version: ${{ steps.get-deb-version.outputs.version }}
+      rpm_version: ${{ steps.get-rpm-version.outputs.version }}
+      apk_version: ${{ steps.get-apk-version.outputs.version }}
+    steps:
+      - name: Get DEB version
+        id: get-deb-version
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=deb")
+          DEB_VERSION=$(echo "$RESPONSE" | jq -r '.[0].latest_version.version // empty')
+          if [ -z "$DEB_VERSION" ] || [ "$DEB_VERSION" = "null" ]; then
+            echo "Error: Failed to get DEB version from Gemfury API"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+          echo "version=$DEB_VERSION" >> $GITHUB_OUTPUT
+          echo "Latest DEB version: $DEB_VERSION"
+
+      - name: Get RPM version
+        id: get-rpm-version
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=rpm")
+          RPM_VERSION=$(echo "$RESPONSE" | jq -r '.[0].latest_version.version // empty')
+          if [ -z "$RPM_VERSION" ] || [ "$RPM_VERSION" = "null" ]; then
+            echo "Error: Failed to get RPM version from Gemfury API"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+          echo "version=$RPM_VERSION" >> $GITHUB_OUTPUT
+          echo "Latest RPM version: $RPM_VERSION"
+
+      - name: Get APK version
+        id: get-apk-version
+        env:
+          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+        run: |
+          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=apk")
+          APK_VERSION=$(echo "$RESPONSE" | jq -r '.[0].latest_version.version // empty')
+          if [ -z "$APK_VERSION" ] || [ "$APK_VERSION" = "null" ]; then
+            echo "Error: Failed to get APK version from Gemfury API"
+            echo "Response: $RESPONSE"
+            exit 1
+          fi
+          echo "version=$APK_VERSION" >> $GITHUB_OUTPUT
+          echo "Latest APK version: $APK_VERSION"
+
   test-deb:
     name: Test DEB Package (apt)
     runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      DEB_VERSION: ${{ needs.get-latest-versions.outputs.deb_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -56,6 +107,9 @@ jobs:
   test-rpm:
     name: Test RPM Package (yum)
     runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      RPM_VERSION: ${{ needs.get-latest-versions.outputs.rpm_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -96,6 +150,9 @@ jobs:
   test-apk:
     name: Test APK Package (apk)
     runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      APK_VERSION: ${{ needs.get-latest-versions.outputs.apk_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -130,9 +187,9 @@ jobs:
           docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
 
   notify-slack:
-    name: Notify Slack on Failure
+    name: Notify Slack
     runs-on: ubuntu-latest
-    needs: [test-deb, test-rpm, test-apk]
+    needs: [get-latest-versions, test-deb, test-rpm, test-apk]
     if: always()
     steps:
       - name: Check if any test failed
@@ -152,7 +209,7 @@ jobs:
             echo "Found failures - will send notification"
           else
             echo "has_failures=false" >> $GITHUB_OUTPUT
-            echo "All tests passed - no notification needed"
+            echo "All tests passed - will send success notification"
           fi
 
       - name: Send Slack notification on failure
@@ -165,6 +222,28 @@ jobs:
           payload: |
             channel: ${{ secrets.DEVOPS_NOTIFICATIONS_SLACK_CHANNEL_ID }}
             text: "🚨 Gemfury Package Validation Failed: 
+            Versions tested:
+            • DEB: ${{ needs.get-latest-versions.outputs.deb_version }}
+            • RPM: ${{ needs.get-latest-versions.outputs.rpm_version }}
+            • APK: ${{ needs.get-latest-versions.outputs.apk_version }}
+            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+          errors: false
+          retries: 0
+
+      - name: Send Slack notification on success
+        if: steps.check-failures.outputs.has_failures == 'false'
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.NOTIFY_DEVOPS_SLACK_APP_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_NOTIFICATIONS_SLACK_CHANNEL_ID }}
+            text: "✅ Gemfury Package Validation Succeeded: 
+            Versions tested:
+            • DEB: ${{ needs.get-latest-versions.outputs.deb_version }}
+            • RPM: ${{ needs.get-latest-versions.outputs.rpm_version }}
+            • APK: ${{ needs.get-latest-versions.outputs.apk_version }}
             <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
           errors: false
           retries: 0
