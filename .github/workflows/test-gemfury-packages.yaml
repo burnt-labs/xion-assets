@@ -23,7 +23,7 @@ jobs:
       - name: Get DEB version
         id: get-deb-version
         env:
-          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
         run: |
           RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=deb")
           DEB_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
@@ -38,7 +38,7 @@ jobs:
       - name: Get RPM version
         id: get-rpm-version
         env:
-          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
         run: |
           RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=rpm")
           RPM_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
@@ -53,7 +53,7 @@ jobs:
       - name: Get APK version
         id: get-apk-version
         env:
-          FURY_TOKEN: ${{ secrets.FURY_TOKEN }}
+          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
         run: |
           RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=apk")
           APK_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
