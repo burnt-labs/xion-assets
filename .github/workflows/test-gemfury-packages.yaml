@@ -16,53 +16,44 @@ jobs:
     name: Get Latest Package Versions
     runs-on: ubuntu-latest
     outputs:
-      deb_version: ${{ steps.get-deb-version.outputs.version }}
-      rpm_version: ${{ steps.get-rpm-version.outputs.version }}
-      apk_version: ${{ steps.get-apk-version.outputs.version }}
+      deb_version: ${{ steps.get-versions.outputs.deb_version }}
+      rpm_version: ${{ steps.get-versions.outputs.rpm_version }}
+      apk_version: ${{ steps.get-versions.outputs.apk_version }}
     steps:
-      - name: Get DEB version
-        id: get-deb-version
+      - name: Get all package versions
+        id: get-versions
         env:
           FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
         run: |
-          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=deb")
-          DEB_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
+          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond")
+          echo "API Response: $RESPONSE" | jq .
+          
+          DEB_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "deb") | .latest_version.version // empty')
+          RPM_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "rpm") | .latest_version.version // empty')
+          APK_VERSION=$(echo "$RESPONSE" | jq -r '.[] | select(.kind_key == "alpine") | .latest_version.version // empty')
+          
           if [ -z "$DEB_VERSION" ] || [ "$DEB_VERSION" = "null" ]; then
             echo "Error: Failed to get DEB version from Gemfury API"
             echo "Response: $RESPONSE"
             exit 1
           fi
-          echo "version=$DEB_VERSION" >> $GITHUB_OUTPUT
-          echo "Latest DEB version: $DEB_VERSION"
-
-      - name: Get RPM version
-        id: get-rpm-version
-        env:
-          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
-        run: |
-          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=rpm")
-          RPM_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
           if [ -z "$RPM_VERSION" ] || [ "$RPM_VERSION" = "null" ]; then
             echo "Error: Failed to get RPM version from Gemfury API"
             echo "Response: $RESPONSE"
             exit 1
           fi
-          echo "version=$RPM_VERSION" >> $GITHUB_OUTPUT
-          echo "Latest RPM version: $RPM_VERSION"
-
-      - name: Get APK version
-        id: get-apk-version
-        env:
-          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
-        run: |
-          RESPONSE=$(curl -s -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond&kind_key=apk")
-          APK_VERSION=$(echo "$RESPONSE" | jq -r 'if type == "array" then .[0].latest_version.version elif .packages then .packages[0].latest_version.version else .latest_version.version end // empty')
           if [ -z "$APK_VERSION" ] || [ "$APK_VERSION" = "null" ]; then
             echo "Error: Failed to get APK version from Gemfury API"
             echo "Response: $RESPONSE"
             exit 1
           fi
-          echo "version=$APK_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "deb_version=$DEB_VERSION" >> $GITHUB_OUTPUT
+          echo "rpm_version=$RPM_VERSION" >> $GITHUB_OUTPUT
+          echo "apk_version=$APK_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Latest DEB version: $DEB_VERSION"
+          echo "Latest RPM version: $RPM_VERSION"
           echo "Latest APK version: $APK_VERSION"
 
   test-deb:
