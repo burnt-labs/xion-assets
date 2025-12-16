@@ -110,19 +110,31 @@ jobs:
 
       - name: Create new branch
         id: create_branch
-        env :
-          NEW_BRANCH: "upgrade/${{ matrix.network.name }}/${{ steps.version_info.outputs.version_tag }}"
+        env:
+          NETWORK_NAME: ${{ matrix.network.name }}
+          VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
         run: |
             set -Eeuo pipefail
+
+            # Validate version_tag is not empty
+            if [ -z "$VERSION_TAG" ]; then
+              echo "Error: version_tag is empty"
+              exit 1
+            fi
+
+            # Construct branch name and sanitize
+            NEW_BRANCH="upgrade/${NETWORK_NAME}/${VERSION_TAG}"
+            # Sanitize: remove trailing slashes/dots, collapse multiple slashes, replace invalid chars
+            NEW_BRANCH=$(echo "$NEW_BRANCH" | sed 's|/$||g' | sed 's|\.$||g' | sed 's|//\+|/|g' | sed 's|\.\.|.|g' | sed 's|[^a-zA-Z0-9/._-]|-|g')
 
             # Check if the branch already exists
             if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
               git checkout ${NEW_BRANCH}
             else
-              git checkout -b $NEW_BRANCH
-              git push --set-upstream origin $NEW_BRANCH
+              git checkout -b ${NEW_BRANCH}
+              git push --set-upstream origin ${NEW_BRANCH}
             fi
-            echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+            echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Update file ${{ matrix.network.versions_file }}
         id: update_version_json
