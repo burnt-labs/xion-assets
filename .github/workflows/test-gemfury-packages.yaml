@@ -1,0 +1,255 @@
+name: Validate Gemfury Packages
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every Monday at 12:00 PM (EET/EEST, UTC+2/UTC+3)
+    # Using UTC+2 (EET) = 10:00 UTC
+    - cron: '0 10 * * 1'
+  push:
+    branches:
+      - main
+
+jobs:
+  get-latest-versions:
+    name: Get Latest Package Versions
+    runs-on: ubuntu-latest
+    outputs:
+      deb_version: ${{ steps.get-versions.outputs.deb_version }}
+      rpm_version: ${{ steps.get-versions.outputs.rpm_version }}
+      apk_version: ${{ steps.get-versions.outputs.apk_version }}
+    steps:
+      - name: Get all package versions
+        id: get-versions
+        env:
+          FURY_TOKEN: ${{ secrets.GEMFURY_API_TOKEN }}
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/response.json -w "%{http_code}" -H "Authorization: Bearer $FURY_TOKEN" "https://api.fury.io/1/packages?name=xiond")
+          
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "Error: API returned HTTP $HTTP_CODE"
+            cat /tmp/response.json
+            exit 1
+          fi
+          
+          if ! jq empty /tmp/response.json 2>/dev/null; then
+            echo "Error: Invalid JSON response"
+            cat /tmp/response.json
+            exit 1
+          fi
+          
+          echo "API Response:"
+          cat /tmp/response.json | jq .
+          
+          DEB_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "deb") | .latest_version.version // empty')
+          RPM_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "rpm") | .latest_version.version // empty')
+          APK_VERSION=$(cat /tmp/response.json | jq -r '.[] | select(.kind_key == "alpine") | .latest_version.version // empty')
+          
+          if [ -z "$DEB_VERSION" ] || [ "$DEB_VERSION" = "null" ]; then
+            echo "Error: Failed to get DEB version from Gemfury API"
+            cat /tmp/response.json
+            exit 1
+          fi
+          if [ -z "$RPM_VERSION" ] || [ "$RPM_VERSION" = "null" ]; then
+            echo "Error: Failed to get RPM version from Gemfury API"
+            cat /tmp/response.json
+            exit 1
+          fi
+          if [ -z "$APK_VERSION" ] || [ "$APK_VERSION" = "null" ]; then
+            echo "Error: Failed to get APK version from Gemfury API"
+            cat /tmp/response.json
+            exit 1
+          fi
+          
+          echo "deb_version=$DEB_VERSION" >> $GITHUB_OUTPUT
+          echo "rpm_version=$RPM_VERSION" >> $GITHUB_OUTPUT
+          echo "apk_version=$APK_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Latest DEB version: $DEB_VERSION"
+          echo "Latest RPM version: $RPM_VERSION"
+          echo "Latest APK version: $APK_VERSION"
+
+  test-deb:
+    name: Test DEB Package (apt)
+    runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      DEB_VERSION: ${{ needs.get-latest-versions.outputs.deb_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test DEB package
+        working-directory: test-gemfury-packages
+        run: |
+          echo "=== Testing DEB (Ubuntu/Debian - apt) ==="
+          echo "Target version: ${DEB_VERSION}"
+          
+          # Build the Docker image
+          docker build -f Dockerfile.test-deb \
+            --build-arg XIOND_VERSION=${DEB_VERSION} \
+            -t xiond-test-deb:${DEB_VERSION} .
+          
+          # Get installed version
+          INSTALLED_VERSION=$(docker run --rm xiond-test-deb:${DEB_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches
+          if [ "$INSTALLED_VERSION_CLEAN" = "$DEB_VERSION" ]; then
+            echo "✓ DEB installation successful - Version: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $DEB_VERSION"
+          else
+            echo "✗ DEB version mismatch - Expected: $DEB_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-deb:${DEB_VERSION} xiond version --long
+
+  test-rpm:
+    name: Test RPM Package (yum)
+    runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      RPM_VERSION: ${{ needs.get-latest-versions.outputs.rpm_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test RPM package
+        working-directory: test-gemfury-packages
+        run: |
+          echo "=== Testing RPM (Rocky Linux - yum) ==="
+          echo "Target package version: ${RPM_VERSION}"
+          
+          # Extract base version for comparison (xiond version outputs base version without release number)
+          RPM_BASE_VERSION=$(echo $RPM_VERSION | cut -d'-' -f1)
+          echo "Expected xiond binary version: ${RPM_BASE_VERSION}"
+          
+          # Build the Docker image (full version control - pass complete version)
+          docker build -f Dockerfile.test-rpm \
+            --build-arg XIOND_VERSION=${RPM_VERSION} \
+            -t xiond-test-rpm:${RPM_VERSION} .
+          
+          # Get installed version (xiond version command outputs base version without release number)
+          INSTALLED_VERSION=$(docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches (xiond version output is base version, not package version)
+          if [ "$INSTALLED_VERSION_CLEAN" = "$RPM_BASE_VERSION" ]; then
+            echo "✓ RPM installation successful - Package: ${RPM_VERSION}, Binary: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $RPM_BASE_VERSION"
+          else
+            echo "✗ RPM version mismatch - Expected: $RPM_BASE_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version --long
+
+  test-apk:
+    name: Test APK Package (apk)
+    runs-on: ubuntu-latest
+    needs: get-latest-versions
+    env:
+      APK_VERSION: ${{ needs.get-latest-versions.outputs.apk_version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build and test APK package
+        working-directory: test-gemfury-packages
+        run: |
+          echo "=== Testing APK (Alpine Linux - apk) ==="
+          echo "Target version: ${APK_VERSION}"
+          
+          # Build the Docker image
+          docker build -f Dockerfile.test-apk \
+            --build-arg XIOND_VERSION=${APK_VERSION} \
+            -t xiond-test-apk:${APK_VERSION} .
+          
+          # Get installed version
+          INSTALLED_VERSION=$(docker run --rm xiond-test-apk:${APK_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
+          
+          # Verify version matches
+          if [ "$INSTALLED_VERSION_CLEAN" = "$APK_VERSION" ]; then
+            echo "✓ APK installation successful - Version: $INSTALLED_VERSION"
+            echo "Installed version matches expected: $APK_VERSION"
+          else
+            echo "✗ APK version mismatch - Expected: $APK_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            exit 1
+          fi
+          
+          # Show detailed version info
+          echo ""
+          echo "Detailed version information:"
+          docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
+
+  notify-slack:
+    name: Notify Slack
+    runs-on: ubuntu-latest
+    needs: [get-latest-versions, test-deb, test-rpm, test-apk]
+    if: always()
+    steps:
+      - name: Check if any test failed
+        id: check-failures
+        continue-on-error: true
+        run: |
+          DEB_RESULT="${{ needs.test-deb.result }}"
+          RPM_RESULT="${{ needs.test-rpm.result }}"
+          APK_RESULT="${{ needs.test-apk.result }}"
+          
+          echo "DEB result: $DEB_RESULT"
+          echo "RPM result: $RPM_RESULT"
+          echo "APK result: $APK_RESULT"
+          
+          if [ "$DEB_RESULT" != "success" ] || [ "$RPM_RESULT" != "success" ] || [ "$APK_RESULT" != "success" ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "Found failures - will send failure notification"
+          else
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "All tests passed - will send success notification"
+          fi
+
+      - name: Send Slack notification on failure
+        if: steps.check-failures.outputs.has_failures == 'true'
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.NOTIFY_DEVOPS_SLACK_APP_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_NOTIFICATIONS_SLACK_CHANNEL_ID }}
+            text: "🚨 Gemfury Package Validation Failed: 
+            Versions tested:
+            • DEB: ${{ needs.get-latest-versions.outputs.deb_version }}
+            • RPM: ${{ needs.get-latest-versions.outputs.rpm_version }}
+            • APK: ${{ needs.get-latest-versions.outputs.apk_version }}
+            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+          errors: false
+          retries: 0
+
+      - name: Send Slack notification on success
+        if: steps.check-failures.outputs.has_failures == 'false'
+        continue-on-error: true
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.NOTIFY_DEVOPS_SLACK_APP_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_NOTIFICATIONS_SLACK_CHANNEL_ID }}
+            text: "✅ Gemfury Package Validation Succeeded: 
+            Versions tested:
+            • DEB: ${{ needs.get-latest-versions.outputs.deb_version }}
+            • RPM: ${{ needs.get-latest-versions.outputs.rpm_version }}
+            • APK: ${{ needs.get-latest-versions.outputs.apk_version }}
+            <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View workflow run>"
+          errors: false
+          retries: 0
+        
+

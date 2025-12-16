@@ -1,0 +1,32 @@
+FROM ubuntu:22.04
+
+# Install required dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    wget \
+    gpg \
+    apt-transport-https \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download and add the Burnt repository GPG key
+RUN wget -qO - https://packages.burnt.com/apt/gpg.key | \
+    gpg --dearmor -o /usr/share/keyrings/burnt-keyring.gpg
+
+# Add the Burnt repository to apt sources
+RUN echo "deb [signed-by=/usr/share/keyrings/burnt-keyring.gpg] http://packages.burnt.com/apt /" | \
+    tee /etc/apt/sources.list.d/burnt.list
+
+# Update apt cache
+RUN apt-get update
+
+# Install xiond - version can be specified at build time
+ARG XIOND_VERSION=21.0.1
+RUN apt-get install -y xiond=${XIOND_VERSION}
+
+# Verify installation
+RUN xiond version
+
+# Set default command to show version info
+CMD ["xiond", "version", "--long"]
+

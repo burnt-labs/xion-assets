@@ -1,0 +1,20 @@
+FROM rockylinux:9
+
+# Import the Burnt repository GPG key
+RUN rpm --import https://packages.burnt.com/yum/gpg.key
+
+# Add the Burnt repository to yum repos
+RUN printf "[burnt]\nname=Burnt Repo\nenabled=1\nbaseurl=https://packages.burnt.com/yum/\n" | \
+    tee /etc/yum.repos.d/burnt.repo
+
+# Install xiond - version can be specified at build time
+# Full version control - pass complete version including release number if needed (e.g., 21.0.1-1)
+ARG XIOND_VERSION=21.0.1
+RUN yum install -y xiond-${XIOND_VERSION}
+
+# Verify installation
+RUN xiond version
+
+# Set default command to show version info
+CMD ["xiond", "version", "--long"]
+
