@@ -1,0 +1,417 @@
+name: Update Xion Testnet Chain Registry on Release
+
+on:
+  repository_dispatch:
+    types: [xion-assets-release-trigger]
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Xion release tag (e.g., v24.0.0)'
+        required: true
+      release_name:
+        description: 'Xion release name'
+        required: false
+
+jobs:
+  update-chain-registry-testnet:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout xion-assets
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Set release variables
+        id: release_vars
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            TAG_NAME="${{ github.event.client_payload.tag_name }}"
+            RELEASE_NAME="${{ github.event.client_payload.release_name }}"
+          else
+            TAG_NAME="${{ github.event.inputs.tag_name }}"
+            RELEASE_NAME="${{ github.event.inputs.release_name }}"
+          fi
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "version=${TAG_NAME#v}" >> $GITHUB_OUTPUT
+          
+          # Extract major version for upgrade name (e.g., v21.0.1 -> v21)
+          MAJOR_VERSION=$(echo ${TAG_NAME} | sed -E 's/^v([0-9]+)\..*/v\1/')
+          echo "major_version=${MAJOR_VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Download checksums file
+        run: |
+          TAG_NAME="${{ steps.release_vars.outputs.tag_name }}"
+          VERSION="${{ steps.release_vars.outputs.version }}"
+          
+          echo "Downloading checksums for ${TAG_NAME}..."
+          curl -L -o checksums.txt \
+            "https://github.com/burnt-labs/xion/releases/download/${TAG_NAME}/xiond-${VERSION}-checksums.txt"
+          
+          cat checksums.txt
+
+      - name: Extract checksums
+        id: checksums
+        run: |
+          VERSION="${{ steps.release_vars.outputs.version }}"
+          
+          # Extract checksums for each platform
+          DARWIN_AMD64=$(grep "xiond_${VERSION}_darwin_amd64.tar.gz" checksums.txt | awk '{print $1}')
+          DARWIN_ARM64=$(grep "xiond_${VERSION}_darwin_arm64.tar.gz" checksums.txt | awk '{print $1}')
+          LINUX_AMD64=$(grep "xiond_${VERSION}_linux_amd64.tar.gz" checksums.txt | awk '{print $1}')
+          LINUX_ARM64=$(grep "xiond_${VERSION}_linux_arm64.tar.gz" checksums.txt | awk '{print $1}')
+          
+          echo "darwin_amd64=${DARWIN_AMD64}" >> $GITHUB_OUTPUT
+          echo "darwin_arm64=${DARWIN_ARM64}" >> $GITHUB_OUTPUT
+          echo "linux_amd64=${LINUX_AMD64}" >> $GITHUB_OUTPUT
+          echo "linux_arm64=${LINUX_ARM64}" >> $GITHUB_OUTPUT
+
+      - name: Extract dependency versions from go.mod
+        id: deps
+        run: |
+          set -Eeuo pipefail
+          
+          TAG_NAME="${{ steps.release_vars.outputs.tag_name }}"
+          
+          # Download go.mod via curl
+          curl -sSL "https://raw.githubusercontent.com/burnt-labs/xion/${TAG_NAME}/go.mod" -o go.mod
+          
+          # Extract versions using go mod edit -json
+          SDK_VERSION=$(go mod edit -json | jq -r '.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version')
+          echo "sdk_version=${SDK_VERSION}" >> $GITHUB_OUTPUT
+          
+          COMETBFT_VERSION=$(go mod edit -json | jq -r '.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version')
+          echo "cometbft_version=${COMETBFT_VERSION}" >> $GITHUB_OUTPUT
+          
+          WASMD_VERSION=$(go mod edit -json | jq -r '.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version // empty')
+          echo "wasmd_version=${WASMD_VERSION}" >> $GITHUB_OUTPUT
+          
+          IBC_VERSION=$(go mod edit -json | jq -r '.Require[] | select(.Path | startswith("github.com/cosmos/ibc-go/v")) | select(.Path | contains("light-clients") | not) | select(.Path | contains("capability") | not) | select(.Path | contains("middleware") | not) | .Version' | head -1)
+          echo "ibc_version=${IBC_VERSION}" >> $GITHUB_OUTPUT
+          
+          GO_VERSION=$(go mod edit -json | jq -r '.Go')
+          echo "go_version=v${GO_VERSION}" >> $GITHUB_OUTPUT
+          
+          echo "Extracted versions:"
+          echo "  SDK: ${SDK_VERSION}"
+          echo "  CometBFT: ${COMETBFT_VERSION}"
+          echo "  CosmWasm: ${WASMD_VERSION}"
+          echo "  IBC: ${IBC_VERSION}"
+          echo "  Go: v${GO_VERSION}"
+
+      - name: Checkout xion-testnet-2 to get proposal info
+        uses: actions/checkout@v4
+        with:
+          repository: burnt-labs/xion-testnet-2
+          path: xion-testnet-2-temp
+
+      - name: Extract height and proposal from xion-testnet-2
+        id: proposal
+        run: |
+          MAJOR_VERSION="${{ steps.release_vars.outputs.major_version }}"
+          
+          cd xion-testnet-2-temp/proposals
+          
+          # Find proposal file for this version (e.g., 047-upgrade-v21.json)
+          PROPOSAL_FILE=$(ls -1 | grep -E "^[0-9]+-upgrade-${MAJOR_VERSION}\.json$" | head -1)
+          
+          if [ -z "$PROPOSAL_FILE" ]; then
+            echo "⚠️  No proposal file found for ${MAJOR_VERSION}"
+            echo "height=0" >> $GITHUB_OUTPUT
+            echo "proposal=0" >> $GITHUB_OUTPUT
+            echo "found=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found proposal file: ${PROPOSAL_FILE}"
+            
+            # Extract proposal number from filename (e.g., 047 from 047-upgrade-v21.json)
+            PROPOSAL_NUM=$(echo ${PROPOSAL_FILE} | sed -E 's/^0*([0-9]+)-.*/\1/')
+            
+            # Extract height from JSON file
+            HEIGHT=$(jq -r '.messages[0].plan.height' ${PROPOSAL_FILE})
+            
+            echo "height=${HEIGHT}" >> $GITHUB_OUTPUT
+            echo "proposal=${PROPOSAL_NUM}" >> $GITHUB_OUTPUT
+            echo "found=true" >> $GITHUB_OUTPUT
+            
+            echo "Extracted proposal info:"
+            echo "  Proposal: ${PROPOSAL_NUM}"
+            echo "  Height: ${HEIGHT}"
+          fi
+
+      - name: Create new branch
+        id: create_branch
+        env:
+          VERSION_TAG: ${{ steps.release_vars.outputs.tag_name }}
+        run: |
+          set -Eeuo pipefail
+
+          # Construct branch name and sanitize
+          NEW_BRANCH="upgrade/testnet/${VERSION_TAG}"
+          # Sanitize: remove trailing slashes/dots, collapse multiple slashes, replace invalid chars
+          NEW_BRANCH=$(echo "$NEW_BRANCH" | sed 's|/$||g' | sed 's|\.$||g' | sed 's|//\+|/|g' | sed 's|\.\.|.|g' | sed 's|[^a-zA-Z0-9/._-]|-|g')
+
+          # Check if the branch already exists
+          if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
+            git checkout ${NEW_BRANCH}
+          else
+            git checkout -b ${NEW_BRANCH}
+            git push --set-upstream origin ${NEW_BRANCH}
+          fi
+          echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
+
+      - name: Update chain.json
+        run: |
+          TAG_NAME="${{ steps.release_vars.outputs.tag_name }}"
+          VERSION="${{ steps.release_vars.outputs.version }}"
+          
+          cd public/chain-registry/testnets/xiontestnet2
+          
+          # Update using jq
+          jq --arg tag "${TAG_NAME}" \
+             --arg version "${TAG_NAME}" \
+             --arg go_version "${{ steps.deps.outputs.go_version }}" \
+             --arg darwin_amd64_checksum "${{ steps.checksums.outputs.darwin_amd64 }}" \
+             --arg darwin_arm64_checksum "${{ steps.checksums.outputs.darwin_arm64 }}" \
+             --arg linux_amd64_checksum "${{ steps.checksums.outputs.linux_amd64 }}" \
+             --arg linux_arm64_checksum "${{ steps.checksums.outputs.linux_arm64 }}" \
+             --arg sdk_version "${{ steps.deps.outputs.sdk_version }}" \
+             --arg cometbft_version "${{ steps.deps.outputs.cometbft_version }}" \
+             --arg wasmd_version "${{ steps.deps.outputs.wasmd_version }}" \
+             --arg ibc_version "${{ steps.deps.outputs.ibc_version }}" \
+             '.codebase.tag = $tag |
+              .codebase.recommended_version = $version |
+              .codebase.language.version = $go_version |
+              .codebase.binaries."darwin/amd64" = "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_amd64.tar.gz?checksum=sha256:\($darwin_amd64_checksum)" |
+              .codebase.binaries."darwin/arm64" = "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_arm64.tar.gz?checksum=sha256:\($darwin_arm64_checksum)" |
+              .codebase.binaries."linux/amd64" = "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_amd64.tar.gz?checksum=sha256:\($linux_amd64_checksum)" |
+              .codebase.binaries."linux/arm64" = "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_arm64.tar.gz?checksum=sha256:\($linux_arm64_checksum)" |
+              .codebase.sdk.version = $sdk_version |
+              .codebase.consensus.version = $cometbft_version |
+              .codebase.cosmwasm.version = $wasmd_version |
+              .codebase.ibc.version = $ibc_version' \
+             chain.json > chain.json.tmp
+          
+          mv chain.json.tmp chain.json
+
+          cat chain.json
+          
+          echo "Updated chain.json"
+
+      - name: Update versions.json
+        run: |
+          TAG_NAME="${{ steps.release_vars.outputs.tag_name }}"
+          VERSION="${{ steps.release_vars.outputs.version }}"
+          MAJOR_VERSION="${{ steps.release_vars.outputs.major_version }}"
+          
+          cd public/chain-registry/testnets/xiontestnet2
+          
+          # Check if this version already exists in versions.json
+          VERSION_EXISTS=$(jq --arg name "${MAJOR_VERSION}" '.versions | map(select(.name == $name)) | length' versions.json)
+          
+          if [ "$VERSION_EXISTS" = "0" ]; then
+            echo "Adding new version entry for ${MAJOR_VERSION}"
+            
+            # Get height and proposal from xion-testnet-2 or use 0 if not found
+            HEIGHT="${{ steps.proposal.outputs.height }}"
+            PROPOSAL="${{ steps.proposal.outputs.proposal }}"
+            
+            jq --arg name "${MAJOR_VERSION}" \
+               --arg tag "${TAG_NAME}" \
+               --arg version "${TAG_NAME}" \
+               --arg go_version "${{ steps.deps.outputs.go_version }}" \
+               --arg darwin_amd64_checksum "${{ steps.checksums.outputs.darwin_amd64 }}" \
+               --arg darwin_arm64_checksum "${{ steps.checksums.outputs.darwin_arm64 }}" \
+               --arg linux_amd64_checksum "${{ steps.checksums.outputs.linux_amd64 }}" \
+               --arg linux_arm64_checksum "${{ steps.checksums.outputs.linux_arm64 }}" \
+               --arg sdk_version "${{ steps.deps.outputs.sdk_version }}" \
+               --arg cometbft_version "${{ steps.deps.outputs.cometbft_version }}" \
+               --arg wasmd_version "${{ steps.deps.outputs.wasmd_version }}" \
+               --arg ibc_version "${{ steps.deps.outputs.ibc_version }}" \
+               --argjson height "${HEIGHT}" \
+               --argjson proposal "${PROPOSAL}" \
+               '.versions += [{
+                 "name": $name,
+                 "tag": $tag,
+                 "recommended_version": $version,
+                 "compatible_versions": [$version],
+                 "height": $height,
+                 "proposal": $proposal,
+                 "language": {
+                   "type": "go",
+                   "version": $go_version
+                 },
+                 "binaries": {
+                   "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_amd64.tar.gz?checksum=sha256:\($darwin_amd64_checksum)",
+                   "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_arm64.tar.gz?checksum=sha256:\($darwin_arm64_checksum)",
+                   "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_amd64.tar.gz?checksum=sha256:\($linux_amd64_checksum)",
+                   "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_arm64.tar.gz?checksum=sha256:\($linux_arm64_checksum)"
+                 },
+                 "sdk": {
+                   "type": "cosmos",
+                   "version": $sdk_version
+                 },
+                 "consensus": {
+                   "type": "cometbft",
+                   "version": $cometbft_version
+                 },
+                 "cosmwasm": {
+                   "version": $wasmd_version,
+                   "enabled": true
+                 },
+                 "ibc": {
+                   "type": "go",
+                   "version": $ibc_version
+                 }
+               }]' \
+               versions.json > versions.json.tmp
+            
+            mv versions.json.tmp versions.json
+          else
+            echo "Updating existing version entry for ${MAJOR_VERSION}"
+            
+            # Update existing entry
+            jq --arg name "${MAJOR_VERSION}" \
+               --arg tag "${TAG_NAME}" \
+               --arg version "${TAG_NAME}" \
+               --arg go_version "${{ steps.deps.outputs.go_version }}" \
+               --arg darwin_amd64_checksum "${{ steps.checksums.outputs.darwin_amd64 }}" \
+               --arg darwin_arm64_checksum "${{ steps.checksums.outputs.darwin_arm64 }}" \
+               --arg linux_amd64_checksum "${{ steps.checksums.outputs.linux_amd64 }}" \
+               --arg linux_arm64_checksum "${{ steps.checksums.outputs.linux_arm64 }}" \
+               --arg sdk_version "${{ steps.deps.outputs.sdk_version }}" \
+               --arg cometbft_version "${{ steps.deps.outputs.cometbft_version }}" \
+               --arg wasmd_version "${{ steps.deps.outputs.wasmd_version }}" \
+               --arg ibc_version "${{ steps.deps.outputs.ibc_version }}" \
+               '(.versions[] | select(.name == $name)) |= {
+                 name: $name,
+                 tag: $tag,
+                 recommended_version: $version,
+                 compatible_versions: (.compatible_versions + [$version] | unique),
+                 height: .height,
+                 proposal: .proposal,
+                 language: {
+                   type: "go",
+                   version: $go_version
+                 },
+                 binaries: {
+                   "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_amd64.tar.gz?checksum=sha256:\($darwin_amd64_checksum)",
+                   "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_darwin_arm64.tar.gz?checksum=sha256:\($darwin_arm64_checksum)",
+                   "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_amd64.tar.gz?checksum=sha256:\($linux_amd64_checksum)",
+                   "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/\($tag)/xiond_\($version)_linux_arm64.tar.gz?checksum=sha256:\($linux_arm64_checksum)"
+                 },
+                 sdk: {
+                   type: "cosmos",
+                   version: $sdk_version
+                 },
+                 consensus: {
+                   type: "cometbft",
+                   version: $cometbft_version
+                 },
+                 cosmwasm: {
+                   version: $wasmd_version,
+                   enabled: true
+                 },
+                 ibc: {
+                   type: "go",
+                   version: $ibc_version
+                 }
+               }' \
+               versions.json > versions.json.tmp
+            
+            mv versions.json.tmp versions.json
+          fi
+
+          cat versions.json
+
+          echo "Updated versions.json"
+
+      - name: Commit changes
+        id: commit_changes
+        uses: pirafrank/github-commit-sign@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            args: |
+              commit \
+                --owner=${{ github.repository_owner }} \
+                --repo=${{ github.event.repository.name }} \
+                --branch=${{ steps.create_branch.outputs.new_branch }} \
+                --commitMessage="chore(xion-testnet): update testnet to ${{ steps.release_vars.outputs.tag_name }}" \
+                --changed="public/chain-registry/testnets/xiontestnet2/chain.json" \
+                --changed="public/chain-registry/testnets/xiontestnet2/versions.json"
+      
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_BRANCH: ${{ steps.create_branch.outputs.new_branch }}
+          TAG_NAME: ${{ steps.release_vars.outputs.tag_name }}
+          RELEASE_NAME: ${{ steps.release_vars.outputs.release_name }}
+          SDK_VERSION: ${{ steps.deps.outputs.sdk_version }}
+          COMETBFT_VERSION: ${{ steps.deps.outputs.cometbft_version }}
+          WASMD_VERSION: ${{ steps.deps.outputs.wasmd_version }}
+          IBC_VERSION: ${{ steps.deps.outputs.ibc_version }}
+          GO_VERSION: ${{ steps.deps.outputs.go_version }}
+          DARWIN_AMD64_CHECKSUM: ${{ steps.checksums.outputs.darwin_amd64 }}
+          DARWIN_ARM64_CHECKSUM: ${{ steps.checksums.outputs.darwin_arm64 }}
+          LINUX_AMD64_CHECKSUM: ${{ steps.checksums.outputs.linux_amd64 }}
+          LINUX_ARM64_CHECKSUM: ${{ steps.checksums.outputs.linux_arm64 }}
+          PROPOSAL_FOUND: ${{ steps.proposal.outputs.found }}
+          PROPOSAL_NUM: ${{ steps.proposal.outputs.proposal }}
+          HEIGHT: ${{ steps.proposal.outputs.height }}
+        run: |
+          set -Eeuo pipefail
+
+          # Build PR body
+          PR_BODY="## Automated Update from Xion Testnet Release
+          
+          This PR updates the Xion Testnet (xiontestnet2) chain registry to release **${TAG_NAME}**.
+          
+          ### Changes
+          - Updated \`public/chain-registry/testnets/xiontestnet2/chain.json\` with new binaries and versions
+          - Updated \`public/chain-registry/testnets/xiontestnet2/versions.json\` with new version entry
+          
+          ### Release Details
+          - **Tag**: ${TAG_NAME}
+          - **Release**: ${RELEASE_NAME}
+          - **Cosmos SDK**: ${SDK_VERSION}
+          - **CometBFT**: ${COMETBFT_VERSION}
+          - **CosmWasm**: ${WASMD_VERSION}
+          - **IBC**: ${IBC_VERSION}
+          - **Go**: ${GO_VERSION}
+          
+          ### Binaries
+          - darwin/amd64: \`sha256:${DARWIN_AMD64_CHECKSUM}\`
+          - darwin/arm64: \`sha256:${DARWIN_ARM64_CHECKSUM}\`
+          - linux/amd64: \`sha256:${LINUX_AMD64_CHECKSUM}\`
+          - linux/arm64: \`sha256:${LINUX_ARM64_CHECKSUM}\`
+          
+          ### Governance Info
+          "
+
+          if [ "$PROPOSAL_FOUND" = "true" ]; then
+            PR_BODY="${PR_BODY}- **Proposal**: #${PROPOSAL_NUM}
+          - **Height**: ${HEIGHT}
+          
+          ✅ Height and proposal extracted from [xion-testnet-2](https://github.com/burnt-labs/xion-testnet-2/tree/main/proposals).
+          "
+          else
+            PR_BODY="${PR_BODY}⚠️ **Manual Review Required**: Height and proposal not found in xion-testnet-2 proposals. Please update these fields manually.
+          "
+          fi
+
+          PR_BODY="${PR_BODY}---
+          🤖 This PR was automatically created by the chain-registry testnet update workflow."
+
+          gh pr create \
+            --base main \
+            --draft \
+            --title "Update Xion Testnet to ${TAG_NAME}" \
+            --body "$PR_BODY" \
+            --head "$NEW_BRANCH" \
+            --reviewer "burnt-labs/Burnt_Engineering/Burnt_DevOps"
+
