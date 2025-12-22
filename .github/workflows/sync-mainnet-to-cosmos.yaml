@@ -1,18 +1,17 @@
-name: Sync to Cosmos Chain Registry
+name: Sync Mainnet to Cosmos Chain Registry
 
-# This workflow triggers on merge to main and creates PRs in cosmos/chain-registry
-# for new xion releases. It requires a classic GitHub token.
+# This workflow triggers on merge to main for mainnet changes and creates PRs in cosmos/chain-registry
+# for xion mainnet releases. It requires a classic GitHub token.
 
 on:
   push:
     branches:
       - main
     paths:
-      - 'public/chain-registry/**'
+      - 'public/chain-registry/xion/**'
 
 jobs:
-  sync-to-cosmos-registry:
-    
+  sync-mainnet-to-cosmos-registry:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -40,7 +39,7 @@ jobs:
           set -Eeuo pipefail
           
           # Generate branch name with timestamp
-          NEW_BRANCH="xion/sync-$(date +%Y%m%d-%H%M%S)"
+          NEW_BRANCH="xion/mainnet-sync-$(date +%Y%m%d-%H%M%S)"
           echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
           
           git config user.name "github-actions[bot]"
@@ -48,20 +47,21 @@ jobs:
           
           git checkout -b "$NEW_BRANCH"
 
-      - name: Copy updated files
+      - name: Copy updated mainnet files
         run: |
           set -Eeuo pipefail
           
-          # Copy all files from xion-assets to chain-registry
-          cp -r xion-assets/public/chain-registry/* chain-registry/
-          
+          # Copy only mainnet files from xion-assets to chain-registry
+          mkdir -p chain-registry/xion
+          cp -r xion-assets/public/chain-registry/xion/* chain-registry/xion/
+
       - name: Check for changes and commit
         id: commit_changes
         working-directory: chain-registry
         run: |
           set -Eeuo pipefail
           
-          git add .
+          git add xion/
           
           if git diff --staged --quiet; then
             echo "No changes to commit"
@@ -71,7 +71,7 @@ jobs:
           
           # Create commit message based on changed files
           CHANGED_FILES=$(git diff --staged --name-only | head -5 | tr '\n' ', ' | sed 's/,$//')
-          git commit -m "Update xion chain registry files: $CHANGED_FILES"
+          git commit -m "Update xion mainnet chain registry files: $CHANGED_FILES"
           
           git push --set-upstream origin ${{ steps.create_branch.outputs.new_branch }}
           echo "changes_made=true" >> $GITHUB_OUTPUT
@@ -89,8 +89,8 @@ jobs:
           pr_url=$(gh pr create \
             --repo cosmos/chain-registry \
             --base master \
-            --title "Update xion chain registry files" \
-            --body "Automated sync of xion chain registry files from xion-assets repository" \
+            --title "Update xion mainnet chain registry files" \
+            --body "Automated sync of xion mainnet chain registry files from xion-assets repository" \
             --reviewer "@devops" \
             --head "burnt-labs:$NEW_BRANCH")
           
@@ -100,4 +100,4 @@ jobs:
           else
             echo "Failed to create PR, it may already exist or there was an error"
           fi
-          
+
