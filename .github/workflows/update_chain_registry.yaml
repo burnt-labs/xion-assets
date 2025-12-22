@@ -74,6 +74,7 @@ jobs:
             }' -c)
           
           echo "version_info=$VERSION_INFO" >> $GITHUB_OUTPUT
+          echo "version_info=$VERSION_INFO"
 
   update-versions:
     needs: get-version-info
@@ -104,9 +105,32 @@ jobs:
         run: |
             set -Eeuo pipefail
 
-            # Set variables using heredoc
-            echo "version_tag=$(echo "$VERSION_INFO" | jq -r '.tag')" >> $GITHUB_OUTPUT
-            echo "version_name=$(echo "$VERSION_INFO" | jq -r '.name')" >> $GITHUB_OUTPUT
+            # Validate VERSION_INFO is not empty
+            if [ -z "$VERSION_INFO" ]; then
+              echo "Error: VERSION_INFO is empty"
+              exit 1
+            fi
+
+            # Extract version tag and name
+            VERSION_TAG=$(echo "$VERSION_INFO" | jq -r '.tag // empty')
+            VERSION_NAME=$(echo "$VERSION_INFO" | jq -r '.name // empty')
+
+            # Validate extraction succeeded
+            if [ -z "$VERSION_TAG" ] || [ "$VERSION_TAG" = "null" ]; then
+              echo "Error: Failed to extract version_tag from VERSION_INFO"
+              echo "VERSION_INFO content: $VERSION_INFO"
+              exit 1
+            fi
+
+            if [ -z "$VERSION_NAME" ] || [ "$VERSION_NAME" = "null" ]; then
+              echo "Error: Failed to extract version_name from VERSION_INFO"
+              echo "VERSION_INFO content: $VERSION_INFO"
+              exit 1
+            fi
+
+            # Set outputs
+            echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+            echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: Create new branch
         id: create_branch
