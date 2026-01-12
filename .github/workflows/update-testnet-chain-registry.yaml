@@ -2,7 +2,7 @@ name: Update Xion Testnet Chain Registry on Release
 
 on:
   repository_dispatch:
-    types: [xion-assets-release-trigger]
+    types: [xion-assets-testnet-release-trigger]
   workflow_dispatch:
     inputs:
       tag_name:
