@@ -85,28 +85,34 @@ jobs:
           echo "=== Testing DEB (Ubuntu/Debian - apt) ==="
           echo "Target version: ${DEB_VERSION}"
           
+          # Sanitize version for Docker tag (replace ~ with -)
+          DOCKER_TAG=$(echo ${DEB_VERSION} | tr '~' '-')
+          
           # Build the Docker image
           docker build -f Dockerfile.test-deb \
             --build-arg XIOND_VERSION=${DEB_VERSION} \
-            -t xiond-test-deb:${DEB_VERSION} .
+            -t xiond-test-deb:${DOCKER_TAG} .
           
           # Get installed version
-          INSTALLED_VERSION=$(docker run --rm xiond-test-deb:${DEB_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION=$(docker run --rm xiond-test-deb:${DOCKER_TAG} xiond version 2>/dev/null)
           INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
           
+          # Normalize expected version for comparison (xiond reports -rc1 instead of ~rc1)
+          DEB_VERSION_NORM=$(echo ${DEB_VERSION} | tr '~' '-')
+          
           # Verify version matches
-          if [ "$INSTALLED_VERSION_CLEAN" = "$DEB_VERSION" ]; then
+          if [ "$INSTALLED_VERSION_CLEAN" = "$DEB_VERSION_NORM" ]; then
             echo "✓ DEB installation successful - Version: $INSTALLED_VERSION"
-            echo "Installed version matches expected: $DEB_VERSION"
+            echo "Installed version matches expected: $DEB_VERSION_NORM"
           else
-            echo "✗ DEB version mismatch - Expected: $DEB_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            echo "✗ DEB version mismatch - Expected: $DEB_VERSION_NORM, Got: $INSTALLED_VERSION_CLEAN"
             exit 1
           fi
           
           # Show detailed version info
           echo ""
           echo "Detailed version information:"
-          docker run --rm xiond-test-deb:${DEB_VERSION} xiond version --long
+          docker run --rm xiond-test-deb:${DOCKER_TAG} xiond version --long
 
   test-rpm:
     name: Test RPM Package (yum)
@@ -124,32 +130,38 @@ jobs:
           echo "=== Testing RPM (Rocky Linux - yum) ==="
           echo "Target package version: ${RPM_VERSION}"
           
+          # Sanitize version for Docker tag (replace ~ with -)
+          DOCKER_TAG=$(echo ${RPM_VERSION} | tr '~' '-')
+          
           # Extract base version for comparison (xiond version outputs base version without release number)
           RPM_BASE_VERSION=$(echo $RPM_VERSION | cut -d'-' -f1)
-          echo "Expected xiond binary version: ${RPM_BASE_VERSION}"
+          # Normalize base version (xiond reports -rc1 instead of ~rc1)
+          RPM_BASE_VERSION_NORM=$(echo $RPM_BASE_VERSION | tr '~' '-')
+          
+          echo "Expected xiond binary version: ${RPM_BASE_VERSION_NORM}"
           
           # Build the Docker image (full version control - pass complete version)
           docker build -f Dockerfile.test-rpm \
             --build-arg XIOND_VERSION=${RPM_VERSION} \
-            -t xiond-test-rpm:${RPM_VERSION} .
+            -t xiond-test-rpm:${DOCKER_TAG} .
           
           # Get installed version (xiond version command outputs base version without release number)
-          INSTALLED_VERSION=$(docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION=$(docker run --rm xiond-test-rpm:${DOCKER_TAG} xiond version 2>/dev/null)
           INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
           
           # Verify version matches (xiond version output is base version, not package version)
-          if [ "$INSTALLED_VERSION_CLEAN" = "$RPM_BASE_VERSION" ]; then
+          if [ "$INSTALLED_VERSION_CLEAN" = "$RPM_BASE_VERSION_NORM" ]; then
             echo "✓ RPM installation successful - Package: ${RPM_VERSION}, Binary: $INSTALLED_VERSION"
-            echo "Installed version matches expected: $RPM_BASE_VERSION"
+            echo "Installed version matches expected: $RPM_BASE_VERSION_NORM"
           else
-            echo "✗ RPM version mismatch - Expected: $RPM_BASE_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            echo "✗ RPM version mismatch - Expected: $RPM_BASE_VERSION_NORM, Got: $INSTALLED_VERSION_CLEAN"
             exit 1
           fi
           
           # Show detailed version info
           echo ""
           echo "Detailed version information:"
-          docker run --rm xiond-test-rpm:${RPM_VERSION} xiond version --long
+          docker run --rm xiond-test-rpm:${DOCKER_TAG} xiond version --long
 
   test-apk:
     name: Test APK Package (apk)
@@ -167,28 +179,34 @@ jobs:
           echo "=== Testing APK (Alpine Linux - apk) ==="
           echo "Target version: ${APK_VERSION}"
           
+          # Sanitize version for Docker tag (replace ~ with - if it exists, though APK uses _)
+          DOCKER_TAG=$(echo ${APK_VERSION} | tr '~' '-')
+          
           # Build the Docker image
           docker build -f Dockerfile.test-apk \
             --build-arg XIOND_VERSION=${APK_VERSION} \
-            -t xiond-test-apk:${APK_VERSION} .
+            -t xiond-test-apk:${DOCKER_TAG} .
           
           # Get installed version
-          INSTALLED_VERSION=$(docker run --rm xiond-test-apk:${APK_VERSION} xiond version 2>/dev/null)
+          INSTALLED_VERSION=$(docker run --rm xiond-test-apk:${DOCKER_TAG} xiond version 2>/dev/null)
           INSTALLED_VERSION_CLEAN=${INSTALLED_VERSION#v}
           
+          # Normalize expected version for comparison (Gemfury APK uses _ instead of -)
+          APK_VERSION_NORM=$(echo ${APK_VERSION} | tr '_' '-')
+          
           # Verify version matches
-          if [ "$INSTALLED_VERSION_CLEAN" = "$APK_VERSION" ]; then
+          if [ "$INSTALLED_VERSION_CLEAN" = "$APK_VERSION_NORM" ]; then
             echo "✓ APK installation successful - Version: $INSTALLED_VERSION"
-            echo "Installed version matches expected: $APK_VERSION"
+            echo "Installed version matches expected: $APK_VERSION_NORM"
           else
-            echo "✗ APK version mismatch - Expected: $APK_VERSION, Got: $INSTALLED_VERSION_CLEAN"
+            echo "✗ APK version mismatch - Expected: $APK_VERSION_NORM, Got: $INSTALLED_VERSION_CLEAN"
             exit 1
           fi
           
           # Show detailed version info
           echo ""
           echo "Detailed version information:"
-          docker run --rm xiond-test-apk:${APK_VERSION} xiond version --long
+          docker run --rm xiond-test-apk:${DOCKER_TAG} xiond version --long
 
   notify-slack:
     name: Notify Slack
