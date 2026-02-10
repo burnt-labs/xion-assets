@@ -1,8 +1,8 @@
 name: Update Chain Registry Versions
 
 on:
-  repository_dispatch:
-    types: [xion-assets-release-trigger]
+  # repository_dispatch:
+  #   types: [xion-assets-release-trigger]
   workflow_dispatch:
     inputs:
       release_tag:
