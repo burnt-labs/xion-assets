@@ -1,12 +1,17 @@
 name: Update Chain Registry Versions
 
 on:
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
   repository_dispatch:
     types: [xion-assets-release-trigger]
   workflow_dispatch:
     inputs:
       release_tag:
-        description: 'Release tag to update the chain registry with'
+        description: "Release tag to update the chain registry with"
         required: true
         type: string
 
@@ -22,10 +27,10 @@ jobs:
         id: binary_info
         run: |
           set -Eeuo pipefail
-          
+
           release_base_url="https://github.com/burnt-labs/xion/releases/download/$release_tag"
           checksums_file_url="$release_base_url/xiond-$(echo "$release_tag" | sed 's/^v//')-checksums.txt"
-          
+
           # Read checksums from the file using curl
           binaries=$(paste -s -d "," <(curl -sSL "$checksums_file_url" | awk '/xiond_.*\.tar\.gz/ && !/xiond_.*darwin_all/' | while read checksum filename; do
               platform=$(basename "$filename" ".tar.gz" | cut -d_ -f3- | sed -E 's/^rc[0-9]*-//g; s/_/\//g')
@@ -33,7 +38,7 @@ jobs:
           done))
 
           echo "binaries_json={\"binaries\": {$binaries}}" >> $GITHUB_OUTPUT
-          
+
       - name: Generate Version Info
         id: extract_info
         env:
@@ -69,10 +74,10 @@ jobs:
               },
               ibc: {
                 type: "go",
-                version: (.Require[] | select(.Path == "github.com/cosmos/ibc-go/v8") | .Version)
+                version: (.Require[] | select(.Path | startswith("github.com/cosmos/ibc-go/")) | .Version)
               }
             }' -c)
-          
+
           echo "version_info=$VERSION_INFO" >> $GITHUB_OUTPUT
           echo "version_info=$VERSION_INFO"
 
@@ -96,41 +101,41 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Ensure we can create branches
-        
+          fetch-depth: 0 # Ensure we can create branches
+
       - name: Extract version name
         id: version_info
         env:
           VERSION_INFO: ${{ needs.get-version-info.outputs.version_info }}
         run: |
-            set -Eeuo pipefail
+          set -Eeuo pipefail
 
-            # Validate VERSION_INFO is not empty
-            if [ -z "$VERSION_INFO" ]; then
-              echo "Error: VERSION_INFO is empty"
-              exit 1
-            fi
+          # Validate VERSION_INFO is not empty
+          if [ -z "$VERSION_INFO" ]; then
+            echo "Error: VERSION_INFO is empty"
+            exit 1
+          fi
 
-            # Extract version tag and name
-            VERSION_TAG=$(echo "$VERSION_INFO" | jq -r '.tag // empty')
-            VERSION_NAME=$(echo "$VERSION_INFO" | jq -r '.name // empty')
+          # Extract version tag and name
+          VERSION_TAG=$(echo "$VERSION_INFO" | jq -r '.tag // empty')
+          VERSION_NAME=$(echo "$VERSION_INFO" | jq -r '.name // empty')
 
-            # Validate extraction succeeded
-            if [ -z "$VERSION_TAG" ] || [ "$VERSION_TAG" = "null" ]; then
-              echo "Error: Failed to extract version_tag from VERSION_INFO"
-              echo "VERSION_INFO content: $VERSION_INFO"
-              exit 1
-            fi
+          # Validate extraction succeeded
+          if [ -z "$VERSION_TAG" ] || [ "$VERSION_TAG" = "null" ]; then
+            echo "Error: Failed to extract version_tag from VERSION_INFO"
+            echo "VERSION_INFO content: $VERSION_INFO"
+            exit 1
+          fi
 
-            if [ -z "$VERSION_NAME" ] || [ "$VERSION_NAME" = "null" ]; then
-              echo "Error: Failed to extract version_name from VERSION_INFO"
-              echo "VERSION_INFO content: $VERSION_INFO"
-              exit 1
-            fi
+          if [ -z "$VERSION_NAME" ] || [ "$VERSION_NAME" = "null" ]; then
+            echo "Error: Failed to extract version_name from VERSION_INFO"
+            echo "VERSION_INFO content: $VERSION_INFO"
+            exit 1
+          fi
 
-            # Set outputs
-            echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
-            echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
+          # Set outputs
+          echo "version_tag=$VERSION_TAG" >> $GITHUB_OUTPUT
+          echo "version_name=$VERSION_NAME" >> $GITHUB_OUTPUT
 
       - name: Create new branch
         id: create_branch
@@ -138,27 +143,27 @@ jobs:
           NETWORK_NAME: ${{ matrix.network.name }}
           VERSION_TAG: ${{ steps.version_info.outputs.version_tag }}
         run: |
-            set -Eeuo pipefail
+          set -Eeuo pipefail
 
-            # Validate version_tag is not empty
-            if [ -z "$VERSION_TAG" ]; then
-              echo "Error: version_tag is empty"
-              exit 1
-            fi
+          # Validate version_tag is not empty
+          if [ -z "$VERSION_TAG" ]; then
+            echo "Error: version_tag is empty"
+            exit 1
+          fi
 
-            # Construct branch name and sanitize
-            NEW_BRANCH="upgrade/${NETWORK_NAME}/${VERSION_TAG}"
-            # Sanitize: remove trailing slashes/dots, collapse multiple slashes, replace invalid chars
-            NEW_BRANCH=$(echo "$NEW_BRANCH" | sed 's|/$||g' | sed 's|\.$||g' | sed 's|//\+|/|g' | sed 's|\.\.|.|g' | sed 's|[^a-zA-Z0-9/._-]|-|g')
+          # Construct branch name and sanitize
+          NEW_BRANCH="upgrade/${NETWORK_NAME}/${VERSION_TAG}"
+          # Sanitize: remove trailing slashes/dots, collapse multiple slashes, replace invalid chars
+          NEW_BRANCH=$(echo "$NEW_BRANCH" | sed 's|/$||g' | sed 's|\.$||g' | sed 's|//\+|/|g' | sed 's|\.\.|.|g' | sed 's|[^a-zA-Z0-9/._-]|-|g')
 
-            # Check if the branch already exists
-            if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
-              git checkout ${NEW_BRANCH}
-            else
-              git checkout -b ${NEW_BRANCH}
-              git push --set-upstream origin ${NEW_BRANCH}
-            fi
-            echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
+          # Check if the branch already exists
+          if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
+            git checkout ${NEW_BRANCH}
+          else
+            git checkout -b ${NEW_BRANCH}
+            git push --set-upstream origin ${NEW_BRANCH}
+          fi
+          echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Update file ${{ matrix.network.versions_file }}
         id: update_version_json
@@ -181,7 +186,7 @@ jobs:
               .versions += [$new]
             ' "$VERSIONS_FILE" > "$VERSIONS_FILE.tmp" && mv "$VERSIONS_FILE.tmp" "$VERSIONS_FILE"
           fi
-          
+
       - name: Update file ${{ matrix.network.chain_file }}
         env:
           VERSION_INFO: ${{ needs.get-version-info.outputs.version_info }}
@@ -202,15 +207,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-            args: |
-              commit \
-                --owner=${{ github.repository_owner }} \
-                --repo=${{ github.event.repository.name }} \
-                --branch=${{ steps.create_branch.outputs.new_branch }} \
-                --commitMessage="upgrade ${{ matrix.network.name }} to ${{ steps.version_info.outputs.version_tag }} in versions.json and chain.json" \
-                --changed="${{ matrix.network.chain_file }}" \
-                --changed="${{ matrix.network.versions_file}}"
-      
+          args: |
+            commit \
+              --owner=${{ github.repository_owner }} \
+              --repo=${{ github.event.repository.name }} \
+              --branch=${{ steps.create_branch.outputs.new_branch }} \
+              --commitMessage="upgrade ${{ matrix.network.name }} to ${{ steps.version_info.outputs.version_tag }} in versions.json and chain.json" \
+              --changed="${{ matrix.network.chain_file }}" \
+              --changed="${{ matrix.network.versions_file}}"
+
       - name: Create Pull Request - ${{ matrix.network.name }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -226,4 +231,4 @@ jobs:
             --title "upgrade: upgrade $VERSION_TAG to $NETWORK_NAME chain registry" \
             --body "Updates $NETWORK_NAME versions.json and chain.json with $VERSION_TAG release information" \
             --head "$NEW_BRANCH" \
-            --reviewer "burnt-labs/Burnt_Engineering/Burnt_DevOps"
+            --reviewer "burnt-labs/burnt-engineering/burnt-devops"
