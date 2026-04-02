@@ -42,37 +42,40 @@
   },
   "codebase": {
     "git_repo": "https://github.com/burnt-labs/xion",
-    "tag": "v21.0.1",
-    "recommended_version": "v21.0.1",
+    "tag": "v28.1.0",
+    "recommended_version": "v28.1.0",
     "language": {
       "type": "go",
-      "version": "v1.24"
+      "version": "v1.25"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_darwin_amd64.tar.gz?checksum=sha256:22aa1231d284db86b1f44df4a814e8520ff4f6d1d9eaf21dad8079b1b4f6b4ef",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_darwin_arm64.tar.gz?checksum=sha256:0687ba93ed57c2658b54f217b53c20dca19491487898b782baeb20ab55d87cb6",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_linux_amd64.tar.gz?checksum=sha256:22872984ffb13cef3a79fd7ee923014835f5b17b69952e4fd86a5bf053bd49d9",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_linux_arm64.tar.gz?checksum=sha256:0ffb44d064e8adc7bca8d883da8f168a6e19fd2e265cfdb6d2224adcdeb6b663"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_darwin_amd64.tar.gz?checksum=sha256:e71ae26b7234746232e03f58bfa384ff3a8d6bcc7bba7e1bb12a8f49d563b81b",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_darwin_arm64.tar.gz?checksum=sha256:dc5d69ea497ea6187e85d5952a2aed29687b9accddb23c993ae92da25e7df7d3",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_linux_amd64.tar.gz?checksum=sha256:9e69770f5d70979f6574ef466e5a39022f8ced73b6376913501d44f8d82f7454",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_linux_arm64.tar.gz?checksum=sha256:a2a1ee3be6b23d51c86988ba42b307f60c80a15f4aac6b5d6adf46ef421f3519"
     },
     "sdk": {
       "type": "cosmos",
-      "version": "v0.53.4"
+      "version": "v0.53.6"
     },
     "consensus": {
       "type": "cometbft",
-      "version": "v0.38.19"
+      "version": "v0.38.21"
     },
     "cosmwasm": {
-      "version": "v0.61.2",
+      "version": "v0.61.8",
       "enabled": true
     },
     "ibc": {
       "type": "go",
-      "version": "v10.3.0"
+      "version": "v10.5.0"
     },
     "genesis": {
       "genesis_url": "https://raw.githubusercontent.com/burnt-labs/xion-mainnet-1/main/config/genesis.json"
-    }
+    },
+    "compatible_versions": [
+      "v28.1.0"
+    ]
   },
   "peers": {
     "seeds": [
