@@ -44,8 +44,8 @@ jobs:
           git remote add upstream https://github.com/cosmos/chain-registry.git
           git fetch upstream master
 
-          # Keep fork's xion/main in sync with upstream master
-          git push origin upstream/master:refs/heads/xion/main
+          # Keep fork's master in sync with upstream master
+          git push origin upstream/master:refs/heads/master
 
           # Create branch based on upstream master so PRs are clean
           NEW_BRANCH="xion/testnet-sync-$(date +%Y%m%d-%H%M%S)"
@@ -104,5 +104,13 @@ jobs:
           else
             echo "Failed to create PR, it may already exist or there was an error"
           fi
+
+      - name: Update fork's xion/main to match PR branch
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+
+          git push origin ${{ steps.create_branch.outputs.new_branch }}:refs/heads/xion/main
 
 
