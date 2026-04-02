@@ -42,45 +42,43 @@
   },
   "codebase": {
     "git_repo": "https://github.com/burnt-labs/xion",
-    "tag": "v21.0.1",
-    "recommended_version": "v21.0.1",
+    "tag": "v28.1.0",
+    "recommended_version": "v28.1.0",
     "language": {
       "type": "go",
-      "version": "v1.24"
+      "version": "v1.25"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_darwin_amd64.tar.gz?checksum=sha256:22aa1231d284db86b1f44df4a814e8520ff4f6d1d9eaf21dad8079b1b4f6b4ef",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_darwin_arm64.tar.gz?checksum=sha256:0687ba93ed57c2658b54f217b53c20dca19491487898b782baeb20ab55d87cb6",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_linux_amd64.tar.gz?checksum=sha256:22872984ffb13cef3a79fd7ee923014835f5b17b69952e4fd86a5bf053bd49d9",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v21.0.1/xiond_21.0.1_linux_arm64.tar.gz?checksum=sha256:0ffb44d064e8adc7bca8d883da8f168a6e19fd2e265cfdb6d2224adcdeb6b663"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_darwin_amd64.tar.gz?checksum=sha256:e71ae26b7234746232e03f58bfa384ff3a8d6bcc7bba7e1bb12a8f49d563b81b",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_darwin_arm64.tar.gz?checksum=sha256:dc5d69ea497ea6187e85d5952a2aed29687b9accddb23c993ae92da25e7df7d3",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_linux_amd64.tar.gz?checksum=sha256:9e69770f5d70979f6574ef466e5a39022f8ced73b6376913501d44f8d82f7454",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v28.1.0/xiond_28.1.0_linux_arm64.tar.gz?checksum=sha256:a2a1ee3be6b23d51c86988ba42b307f60c80a15f4aac6b5d6adf46ef421f3519"
     },
     "sdk": {
       "type": "cosmos",
-      "version": "v0.53.4"
+      "version": "v0.53.6"
     },
     "consensus": {
       "type": "cometbft",
-      "version": "v0.38.19"
+      "version": "v0.38.21"
     },
     "cosmwasm": {
-      "version": "v0.61.2",
+      "version": "v0.61.8",
       "enabled": true
     },
     "ibc": {
       "type": "go",
-      "version": "v10.3.0"
+      "version": "v10.5.0"
     },
     "genesis": {
       "genesis_url": "https://raw.githubusercontent.com/burnt-labs/xion-mainnet-1/main/config/genesis.json"
-    }
+    },
+    "compatible_versions": [
+      "v28.1.0"
+    ]
   },
   "peers": {
     "seeds": [
-      {
-        "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
-        "address": "xion-mainnet-seed.autostake.com:27596",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
-      },
       {
         "id": "20e1000e88125698264454a884812746c2eb4807",
         "address": "seeds.lavenderfive.com:22356",
@@ -90,28 +88,18 @@
         "id": "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0",
         "address": "seeds.polkachu.com:22356",
         "provider": "Polkachu"
+      },
+      {
+        "id": "e4bd1c9ec11cdceb438a16bdc7c49e4d4ebbfbce",
+        "address": "xion-mainnet-seed.itrocket.net:24656",
+        "provider": "ITRocket"
       }
     ],
     "persistent_peers": [
       {
-        "id": "ebc272824924ea1a27ea3183dd0b9ba713494f83",
-        "address": "xion-mainnet-peer.autostake.com:27596",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
-      },
-      {
-        "id": "20e1000e88125698264454a884812746c2eb4807",
-        "address": "seeds.lavenderfive.com:22356",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
-      },
-      {
         "id": "cc90aceb84a07b2bd4fe1dce3c1542a3900cf2f8",
         "address": "65.109.122.90:26656",
         "provider": "Blockval"
-      },
-      {
-        "id": "d27cde0c62024a05d46fe375cb91956584fa69a4",
-        "address": "15.235.115.151:18400",
-        "provider": "Cosmostation"
       },
       {
         "id": "c36b658e1e2725542faa14063bfe4f9659286406",
@@ -124,14 +112,9 @@
         "provider": "Nodes.Guru"
       },
       {
-        "id": "5f5cfac5c38506fbb4275c19e87c4107ec48808d",
-        "address": "65.21.198.100:12956",
-        "provider": "nodex.one"
-      },
-      {
-        "id": "766af9cd08365704f7962d3071d1a9c684a88005",
-        "address": "95.217.224.124:43656",
-        "provider": "stakeLab"
+        "id": "7b689a51064007d0da05384b1ae6037dca9aae85",
+        "address": "xion-mainnet-peer.itrocket.net:24656",
+        "provider": "ITRocket"
       }
     ]
   },
@@ -142,10 +125,6 @@
         "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
       },
       {
-        "address": "https://xion-rpc.lavenderfive.com:443",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
-      },
-      {
         "address": "https://rpc-burnt.imperator.co:443",
         "provider": "Imperator.co"
       },
@@ -154,26 +133,14 @@
         "provider": "Polkachu"
       },
       {
-        "address": "https://xion-mainnet-rpc.autostake.com:443",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
-      },
-      {
-        "address": "https://rpc.xion.nodestake.org:443",
-        "provider": "NodeStake"
-      },
-      {
-        "address": "https://xion-rpc.kingnodes.com:443",
-        "provider": "kingnodes \ud83d\udc51"
+        "address": "https://xion-mainnet-rpc.itrocket.net:443",
+        "provider": "ITRocket"
       }
     ],
     "rest": [
       {
         "address": "https://api.xion-mainnet-1.burnt.com",
         "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
-      },
-      {
-        "address": "https://xion-api.lavenderfive.com",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
       },
       {
         "address": "https://lcd-burnt.imperator.co",
@@ -184,16 +151,8 @@
         "provider": "Polkachu"
       },
       {
-        "address": "https://xion-mainnet-lcd.autostake.com",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
-      },
-      {
-        "address": "https://api.xion.nodestake.org",
-        "provider": "NodeStake"
-      },
-      {
-        "address": "https://xion-rest.kingnodes.com",
-        "provider": "kingnodes \ud83d\udc51"
+        "address": "https://xion-mainnet-api.itrocket.net",
+        "provider": "ITRocket"
       }
     ],
     "grpc": [
@@ -202,34 +161,16 @@
         "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
       },
       {
-        "address": "xion-grpc.lavenderfive.com:443",
-        "provider": "Lavender.Five Nodes \ud83d\udc1d"
-      },
-      {
         "address": "xion-grpc.polkachu.com:22390",
         "provider": "Polkachu"
       },
       {
-        "address": "xion-mainnet-grpc.autostake.com:443",
-        "provider": "AutoStake \ud83d\udee1\ufe0f Slash Protected"
-      },
-      {
-        "address": "grpc.xion.nodestake.org:443",
-        "provider": "NodeStake"
-      },
-      {
-        "address": "xion-grpc.kingnodes.com:443",
-        "provider": "kingnodes \ud83d\udc51"
+        "address": "xion-mainnet-grpc.itrocket.net:443",
+        "provider": "ITRocket"
       }
     ]
   },
   "explorers": [
-    {
-      "kind": "Chainroot",
-      "url": "https://explorer.chainroot.io/xion",
-      "tx_page": "https://explorer.chainroot.io/xion/transactions/${txHash}",
-      "account_page": "https://explorer.chainroot.io/xion/accounts/${accountAddress}"
-    },
     {
       "kind": "mintscan",
       "url": "https://www.mintscan.io/xion",
@@ -249,16 +190,16 @@
       "account_page": "https://staking-explorer.com/account.php?chain=xion&addr=${accountAddress}"
     },
     {
-      "kind": "NodeStake",
-      "url": "https://explorer.nodestake.org/xion",
-      "tx_page": "https://explorer.nodestake.org/xion/tx/${txHash}",
-      "account_page": "https://explorer.nodestake.org/xion/account/${accountAddress}"
-    },
-    {
       "kind": "Nodes.Guru",
       "url": "https://xion.explorers.guru",
       "tx_page": "https://xion.explorers.guru/transactions/${txHash}",
       "account_page": "https://xion.explorers.guru//account/${accountAddress}"
+    },
+    {
+      "kind": "ITRocket",
+      "url": "https://mainnet.itrocket.net/xion",
+      "tx_page": "https://mainnet.itrocket.net/xion/tx/${txHash}",
+      "account_page": "https://mainnet.itrocket.net/xion/account/${accountAddress}"
     }
   ],
   "images": [
