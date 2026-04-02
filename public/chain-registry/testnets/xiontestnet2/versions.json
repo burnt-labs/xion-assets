@@ -194,8 +194,8 @@
                 "v19.0.1",
                 "v19.0.2"
             ],
-            "height": 7420000,
-            "proposal": 37,
+            "height": 4050000,
+            "proposal": 23,
             "language": {
                 "type": "go",
                 "version": "v1.23"
