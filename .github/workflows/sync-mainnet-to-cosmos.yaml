@@ -23,29 +23,34 @@ jobs:
         with:
           path: xion-assets
 
-      - name: Check out -> burnt-labs/chain-registry
+      - name: Check out -> burnt-labs/chain-registry (fork)
         uses: actions/checkout@v4
         with:
           repository: burnt-labs/chain-registry
           token: ${{ secrets.GH_TOKEN_FOR_RELEASE_AUTOMATION }}
-          ref: xion/main
           fetch-depth: 0
           path: chain-registry
 
-      - name: Setup Git and Create Branch
+      - name: Setup Git and Create Branch from upstream master
         id: create_branch
         working-directory: chain-registry
         run: |
           set -Eeuo pipefail
 
-          # Generate branch name with timestamp
-          NEW_BRANCH="xion/mainnet-sync-$(date +%Y%m%d-%H%M%S)"
-          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
-
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git checkout -b "$NEW_BRANCH"
+          # Add upstream and fetch master
+          git remote add upstream https://github.com/cosmos/chain-registry.git
+          git fetch upstream master
+
+          # Keep fork's master in sync with upstream master
+          git push origin upstream/master:refs/heads/master
+
+          # Create branch based on upstream master so PRs are clean
+          NEW_BRANCH="xion/mainnet-sync-$(date +%Y%m%d-%H%M%S)"
+          echo "new_branch=$NEW_BRANCH" >> $GITHUB_OUTPUT
+          git checkout -b "$NEW_BRANCH" upstream/master
 
       - name: Copy updated mainnet files
         run: |
@@ -91,7 +96,6 @@ jobs:
             --base master \
             --title "Update xion mainnet chain registry files" \
             --body "Automated sync of xion mainnet chain registry files from xion-assets repository" \
-            --reviewer "@devops" \
             --head "burnt-labs:$NEW_BRANCH")
 
           echo "Created PR: $pr_url"
@@ -100,3 +104,11 @@ jobs:
           else
             echo "Failed to create PR, it may already exist or there was an error"
           fi
+
+      - name: Update fork's xion/main to match PR branch
+        if: steps.commit_changes.outputs.changes_made == 'true'
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+
+          git push origin ${{ steps.create_branch.outputs.new_branch }}:refs/heads/xion/main
