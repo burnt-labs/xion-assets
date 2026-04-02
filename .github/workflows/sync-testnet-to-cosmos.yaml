@@ -102,3 +102,11 @@ jobs:
             echo "Failed to create PR, it may already exist or there was an error"
           fi
 
+      - name: Sync fork's xion/main with upstream master
+        working-directory: chain-registry
+        run: |
+          set -Eeuo pipefail
+
+          git fetch upstream master
+          git push origin upstream/master:refs/heads/xion/main
+
