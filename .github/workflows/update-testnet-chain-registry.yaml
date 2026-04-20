@@ -412,6 +412,5 @@ jobs:
             --draft \
             --title "Update Xion Testnet to ${TAG_NAME}" \
             --body "$PR_BODY" \
-            --head "$NEW_BRANCH" \
-            --reviewer "burnt-labs/Burnt_Engineering/Burnt_DevOps"
+            --head "$NEW_BRANCH" || true
 
