@@ -14,7 +14,7 @@ on:
 
 jobs:
   update-chain-registry:
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     permissions:
       contents: write
       pull-requests: write
@@ -60,11 +60,11 @@ jobs:
         run: |
           VERSION="${{ steps.release_vars.outputs.version }}"
           
-          # Extract checksums for each platform
-          DARWIN_AMD64=$(grep "xiond_${VERSION}_darwin_amd64.tar.gz" checksums.txt | awk '{print $1}')
-          DARWIN_ARM64=$(grep "xiond_${VERSION}_darwin_arm64.tar.gz" checksums.txt | awk '{print $1}')
-          LINUX_AMD64=$(grep "xiond_${VERSION}_linux_amd64.tar.gz" checksums.txt | awk '{print $1}')
-          LINUX_ARM64=$(grep "xiond_${VERSION}_linux_arm64.tar.gz" checksums.txt | awk '{print $1}')
+          # Extract checksums for each platform (anchor with $ to avoid matching .sbom.json files)
+          DARWIN_AMD64=$(grep "xiond_${VERSION}_darwin_amd64\.tar\.gz$" checksums.txt | awk '{print $1}')
+          DARWIN_ARM64=$(grep "xiond_${VERSION}_darwin_arm64\.tar\.gz$" checksums.txt | awk '{print $1}')
+          LINUX_AMD64=$(grep "xiond_${VERSION}_linux_amd64\.tar\.gz$" checksums.txt | awk '{print $1}')
+          LINUX_ARM64=$(grep "xiond_${VERSION}_linux_arm64\.tar\.gz$" checksums.txt | awk '{print $1}')
           
           echo "darwin_amd64=${DARWIN_AMD64}" >> $GITHUB_OUTPUT
           echo "darwin_arm64=${DARWIN_ARM64}" >> $GITHUB_OUTPUT
