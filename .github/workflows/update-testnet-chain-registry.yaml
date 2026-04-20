@@ -155,13 +155,11 @@ jobs:
           # Sanitize: remove trailing slashes/dots, collapse multiple slashes, replace invalid chars
           NEW_BRANCH=$(echo "$NEW_BRANCH" | sed 's|/$||g' | sed 's|\.$||g' | sed 's|//\+|/|g' | sed 's|\.\.|.|g' | sed 's|[^a-zA-Z0-9/._-]|-|g')
 
-          # Check if the branch already exists
-          if git show-ref --verify --quiet "refs/heads/${NEW_BRANCH}"; then
-            git checkout ${NEW_BRANCH}
-          else
-            git checkout -b ${NEW_BRANCH}
-            git push --set-upstream origin ${NEW_BRANCH}
+          # Delete remote branch if it exists (re-run scenario), then create fresh
+          if git ls-remote --heads origin "${NEW_BRANCH}" | grep -q "${NEW_BRANCH}"; then
+            git push origin --delete "${NEW_BRANCH}" || true
           fi
+          git checkout -b "${NEW_BRANCH}"
           echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Update chain.json
