@@ -111,4 +111,4 @@ jobs:
         run: |
           set -Eeuo pipefail
 
-          git push origin ${{ steps.create_branch.outputs.new_branch }}:refs/heads/xion/main
+          git push --force origin ${{ steps.create_branch.outputs.new_branch }}:refs/heads/xion/main
