@@ -160,6 +160,7 @@ jobs:
             git push origin --delete "${NEW_BRANCH}" || true
           fi
           git checkout -b "${NEW_BRANCH}"
+          git push --set-upstream origin "${NEW_BRANCH}"
           echo "new_branch=${NEW_BRANCH}" >> $GITHUB_OUTPUT
 
       - name: Update chain.json
