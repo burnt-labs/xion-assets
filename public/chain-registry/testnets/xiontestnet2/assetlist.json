@@ -3,7 +3,7 @@
   "chain_name": "xiontestnet2",
   "assets": [
     {
-      "description": "The native staking token of the Xion network.",
+      "description": "The native staking token of the Verona network.",
       "denom_units": [
         {
           "denom": "uxion",
@@ -16,20 +16,23 @@
           "denom": "XION",
           "exponent": 6,
           "aliases": [
-            "xion"
+            "xion",
+            "VERONA"
           ]
         }
       ],
       "base": "uxion",
-      "display": "XION",
-      "name": "xion",
-      "symbol": "XION",
+      "display": "VERONA",
+      "name": "Verona",
+      "symbol": "VERONA",
       "logo_URIs": {
-        "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
+        "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.png",
+        "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.svg"
       },
       "images": [
         {
-          "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
+          "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.png",
+          "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.svg"
         }
       ],
       "socials": {
@@ -37,7 +40,7 @@
         "github": "https://github.com/burnt-labs",
         "telegram": "https://t.me/xion_announcements",
         "twitter": "https://x.com/burnt_xion",
-        "website": "https://xion.burnt.com"
+        "website": "https://verona.dev"
       },
       "type_asset": "sdk.coin",
       "coingecko_id": "xion-2"

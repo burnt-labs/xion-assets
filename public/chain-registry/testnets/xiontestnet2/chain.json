@@ -3,7 +3,7 @@
   "chain_name": "xiontestnet2",
   "chain_type": "cosmos",
   "chain_id": "xion-testnet-2",
-  "pretty_name": "Xion Testnet",
+  "pretty_name": "Verona Testnet",
   "website": "https://xion.burnt.com",
   "status": "live",
   "network_type": "testnet",
@@ -200,14 +200,17 @@
   ],
   "images": [
     {
-      "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt.png"
+      "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.png",
+      "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.svg"
     }
   ],
   "logo_URIs": {
-    "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt.png"
+    "png": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.png",
+    "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/verona-main.svg"
   },
-  "description": "XION is the first walletless L1 blockchain purpose built for consumer adoption through chain abstraction.",
+  "description": "Verona is the intelligence layer for AI.",
   "keywords": [
+    "verona",
     "xion",
     "burnt",
     "testnet"
