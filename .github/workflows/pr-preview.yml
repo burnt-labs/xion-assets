@@ -1,0 +1,21 @@
+name: PR Candidate Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  preview:
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.draft == false &&
+       github.event.pull_request.head.repo.fork == false)
+    uses: burnt-labs/github-workflows/.github/workflows/cloudflare-pr.yml@dc9c30663c189d24c1346a3f96f1457e3bb526c6 # v1.3.4
+    secrets: inherit

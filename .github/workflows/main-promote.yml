@@ -1,0 +1,19 @@
+name: Promote Main
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  deployments: write
+
+concurrency:
+  group: promote-main
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    uses: burnt-labs/github-workflows/.github/workflows/cloudflare-main.yml@dc9c30663c189d24c1346a3f96f1457e3bb526c6 # v1.3.4
+    secrets: inherit

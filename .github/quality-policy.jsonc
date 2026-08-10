@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "workingDirectory": ".",
+  "commands": {
+    "install": "npm ci",
+    "lint": "npm run lint",
+    "prettier": "npm run format:check",
+    "typeCheck": "npm run typecheck",
+    "test": "npm test",
+    "coverage": "npm run test:coverage",
+    "build": "npm run build",
+    "validate": "npm exec wrangler -- deploy --dry-run",
+  },
+  "coverageThresholds": {
+    "lines": 100,
+    "functions": 100,
+    "branches": 100,
+  },
+}
