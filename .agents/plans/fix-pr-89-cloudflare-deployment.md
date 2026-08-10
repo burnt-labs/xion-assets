@@ -15,3 +15,16 @@
 4. Validate the policy files, workflow syntax, install, audit, lint, formatting, type checking, tests, coverage, build, and Wrangler dry run.
 5. Push the changes and verify the replacement GitHub Actions checks.
 6. Remove the obsolete Cloudflare Workers Builds triggers after the GitHub Actions path succeeds.
+
+## Execution
+
+- GitHub Actions run `31438642875` completed the policy, quality, preview URL
+  enablement, candidate upload, and preview publication jobs successfully.
+- Cloudflare identified `xion-assets` by Worker tag
+  `fa091517d6904b8dba9abbbef08d2a1e`.
+- Deleted the matching non-production trigger
+  `8793c58f-f256-4f3a-a53d-13c03f916812` and production trigger
+  `1187a6ee-c2ac-4615-aef0-bcd24ef095c1` only after the replacement preview
+  succeeded.
+- A fresh Cloudflare Builds API query returned zero remaining triggers for the
+  Worker tag.
