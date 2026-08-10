@@ -12,7 +12,27 @@ permissions:
   pull-requests: write
 
 jobs:
+  enable-preview-urls:
+    name: Enable Worker preview URLs
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Enable versioned preview URLs
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.BURNT_CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.BURNT_CLOUDFLARE_API_TOKEN }}
+        run: |
+          response=$(curl --silent --show-error --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"enabled":false,"previews_enabled":true}' \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/xion-assets/subdomain")
+          printf '%s' "$response" | jq --exit-status \
+            '.success and (.result.enabled == false) and (.result.previews_enabled == true)'
+
   preview:
+    needs: enable-preview-urls
     if: >-
       github.event_name != 'pull_request' ||
       (github.event.pull_request.draft == false &&
