@@ -18,4 +18,6 @@ jobs:
       (github.event.pull_request.draft == false &&
        github.event.pull_request.head.repo.fork == false)
     uses: burnt-labs/github-workflows/.github/workflows/cloudflare-pr.yml@dc9c30663c189d24c1346a3f96f1457e3bb526c6 # v1.3.4
-    secrets: inherit
+    secrets:
+      cloudflare-account-id: ${{ secrets.BURNT_CLOUDFLARE_ACCOUNT_ID }}
+      cloudflare-api-token: ${{ secrets.BURNT_CLOUDFLARE_API_TOKEN }}
