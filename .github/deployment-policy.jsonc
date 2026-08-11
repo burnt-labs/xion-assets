@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "topology": "single",
+  "promotionMode": "automatic",
+  "workingDirectory": ".",
+  "versionFile": "package.json",
+  "packageManager": "npm",
+  "targets": {
+    "candidate": {
+      "githubEnvironment": "production",
+      "url": "https://assets.xion.burnt.com",
+    },
+    "release": {
+      "githubEnvironment": "production",
+      "url": "https://assets.xion.burnt.com",
+    },
+  },
+}

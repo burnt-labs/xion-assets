@@ -1,33 +1,48 @@
 {
-	"name": "xion-assets-worker",
-	"version": "0.0.0",
-	"private": true,
-	"type": "module",
-	"scripts": {
-		"dev": "vite",
-		"build": "run-p type-check \"build-only {@}\" --",
-		"preview": "npm run build && wrangler dev",
-		"build-only": "vite build",
-		"type-check": "vue-tsc --build",
-		"deploy": "npm run build && wrangler deploy",
-		"cf-typegen": "wrangler types"
-	},
-	"dependencies": {
-		"simple-git": "^3.32.3",
-		"vue": "^3.5.13",
-		"vue-router": "^4.5.0"
-	},
-	"devDependencies": {
-		"@cloudflare/vite-plugin": "^1.31.0",
-		"@tsconfig/node22": "^22.0.1",
-		"@types/node": "^22.14.0",
-		"@vitejs/plugin-vue": "^5.2.3",
-		"@vue/tsconfig": "^0.7.0",
-		"npm-run-all2": "^7.0.2",
-		"typescript": "~5.8.0",
-		"vite": "^6.4.2",
-		"vite-plugin-vue-devtools": "^7.7.2",
-		"vue-tsc": "^2.2.8",
-		"wrangler": "^4.80.0"
-	}
+  "name": "xion-assets-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.1"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "run-p type-check \"build-only {@}\" --",
+    "preview": "npm run build && wrangler dev",
+    "build-only": "vite build",
+    "lint": "eslint server vite.config.ts",
+    "format:check": "prettier --check \".github/**/*.{yml,jsonc}\" package.json vitest.config.ts \"server/**/*.test.ts\"",
+    "type-check": "vue-tsc --build",
+    "typecheck": "npm run type-check",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
+  },
+  "dependencies": {
+    "simple-git": "^3.32.3",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.31.0",
+    "@eslint/js": "^9.39.1",
+    "@tsconfig/node24": "^24.0.4",
+    "@types/node": "^24.12.2",
+    "@vitejs/plugin-vue": "^5.2.3",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vue/tsconfig": "^0.9.1",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "npm-run-all2": "^7.0.2",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.46.4",
+    "vite": "^6.4.2",
+    "vite-plugin-vue-devtools": "^7.7.2",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.9",
+    "wrangler": "^4.80.0"
+  }
 }

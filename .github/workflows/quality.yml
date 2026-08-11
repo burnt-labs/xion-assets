@@ -1,0 +1,13 @@
+name: Quality
+
+on:
+  pull_request:
+  merge_group:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  required:
+    uses: burnt-labs/github-workflows/.github/workflows/required-quality.yml@dc9c30663c189d24c1346a3f96f1457e3bb526c6 # v1.3.4

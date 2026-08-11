@@ -1,0 +1,43 @@
+name: PR Candidate Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  enable-preview-urls:
+    name: Enable Worker preview URLs
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Enable versioned preview URLs
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.BURNT_CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.BURNT_CLOUDFLARE_API_TOKEN }}
+        run: |
+          response=$(curl --silent --show-error --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data '{"enabled":false,"previews_enabled":true}' \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/scripts/xion-assets/subdomain")
+          printf '%s' "$response" | jq --exit-status \
+            '.success and (.result.enabled == false) and (.result.previews_enabled == true)'
+
+  preview:
+    needs: enable-preview-urls
+    if: >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.draft == false &&
+       github.event.pull_request.head.repo.fork == false)
+    uses: burnt-labs/github-workflows/.github/workflows/cloudflare-pr.yml@dc9c30663c189d24c1346a3f96f1457e3bb526c6 # v1.3.4
+    secrets:
+      cloudflare-account-id: ${{ secrets.BURNT_CLOUDFLARE_ACCOUNT_ID }}
+      cloudflare-api-token: ${{ secrets.BURNT_CLOUDFLARE_API_TOKEN }}
