@@ -30,13 +30,20 @@ jobs:
 
       - name: Set release variables
         id: release_vars
+        # Payload/input values are env-bound (not interpolated into the script text) so a
+        # crafted tag or release name can't inject shell on the runner.
+        env:
+          DISPATCH_TAG: ${{ github.event.client_payload.tag_name }}
+          DISPATCH_RELEASE: ${{ github.event.client_payload.release_name }}
+          INPUT_TAG: ${{ github.event.inputs.tag_name }}
+          INPUT_RELEASE: ${{ github.event.inputs.release_name }}
         run: |
           if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-            TAG_NAME="${{ github.event.client_payload.tag_name }}"
-            RELEASE_NAME="${{ github.event.client_payload.release_name }}"
+            TAG_NAME="$DISPATCH_TAG"
+            RELEASE_NAME="$DISPATCH_RELEASE"
           else
-            TAG_NAME="${{ github.event.inputs.tag_name }}"
-            RELEASE_NAME="${{ github.event.inputs.release_name }}"
+            TAG_NAME="$INPUT_TAG"
+            RELEASE_NAME="$INPUT_RELEASE"
           fi
 
           echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
@@ -44,7 +51,9 @@ jobs:
 
       - name: Update chain registry files
         id: update
-        run: ./scripts/update-chain-registry.sh testnet "${{ steps.release_vars.outputs.tag_name }}"
+        env:
+          TAG_NAME: ${{ steps.release_vars.outputs.tag_name }}
+        run: ./scripts/update-chain-registry.sh testnet "$TAG_NAME"
 
       - name: Create new branch
         id: create_branch

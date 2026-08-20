@@ -62,8 +62,10 @@ curl -fsSL -o "$WORKDIR/checksums.txt" \
   "https://github.com/burnt-labs/xion/releases/download/${TAG_NAME}/xiond-${VERSION}-checksums.txt"
 
 checksum() {
-  # Anchor with $ to avoid matching .sbom.json entries.
-  grep "xiond_${VERSION}_$1\.tar\.gz\$" "$WORKDIR/checksums.txt" | awk '{print $1}'
+  # Exact filename match (so .sbom.json entries can't hit) in a single awk call:
+  # a pipeline here would trip pipefail on a missing entry before the per-platform
+  # "not found" checks below get to report which one.
+  awk -v want="xiond_${VERSION}_$1.tar.gz" '$2 == want { print $1 }' "$WORKDIR/checksums.txt"
 }
 DARWIN_AMD64=$(checksum darwin_amd64)
 DARWIN_ARM64=$(checksum darwin_arm64)
@@ -81,8 +83,13 @@ gomod() { (cd "$WORKDIR" && go mod edit -json) | jq -r "$1"; }
 SDK_VERSION=$(gomod '.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version')
 COMETBFT_VERSION=$(gomod '.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version')
 WASMD_VERSION=$(gomod '.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version // empty')
-IBC_VERSION=$(gomod '.Require[] | select(.Path | startswith("github.com/cosmos/ibc-go/v")) | select(.Path | contains("light-clients") | not) | select(.Path | contains("capability") | not) | select(.Path | contains("middleware") | not) | .Version' | head -1)
+IBC_VERSION=$(gomod 'first(.Require[] | select(.Path | startswith("github.com/cosmos/ibc-go/v")) | select(.Path | contains("light-clients") | not) | select(.Path | contains("capability") | not) | select(.Path | contains("middleware") | not) | .Version) // empty')
 GO_VERSION="v$(gomod '.Go')"
+
+# Registry files must never carry empty/placeholder versions — fail loudly instead.
+for v in SDK_VERSION COMETBFT_VERSION WASMD_VERSION IBC_VERSION; do
+  [ -n "${!v}" ] || { echo "error: could not extract ${v} from ${TAG_NAME}'s go.mod" >&2; exit 1; }
+done
 
 echo "Extracted versions:"
 echo "  SDK: ${SDK_VERSION}"
@@ -100,13 +107,22 @@ fi
 HEIGHT=0
 PROPOSAL=0
 PROPOSAL_FOUND=false
-PROPOSAL_FILE=$(ls -1 "$PROPOSALS_DIR/proposals" | grep -E "^[0-9]+-upgrade-${MAJOR_VERSION}\.json$" | head -1 || true)
+PROPOSAL_FILE=""
+for f in "$PROPOSALS_DIR"/proposals/[0-9]*-upgrade-"${MAJOR_VERSION}".json; do
+  [ -e "$f" ] || continue
+  PROPOSAL_FILE=$(basename "$f")
+  break
+done
 if [ -z "$PROPOSAL_FILE" ]; then
   echo "⚠️  No proposal file found for ${MAJOR_VERSION} in ${PROPOSALS_REPO}"
 else
   echo "Found proposal file: ${PROPOSAL_FILE}"
   PROPOSAL=$(echo "$PROPOSAL_FILE" | sed -E 's/^0*([0-9]+)-.*/\1/')
-  HEIGHT=$(jq -r '.messages[0].plan.height' "$PROPOSALS_DIR/proposals/$PROPOSAL_FILE")
+  HEIGHT=$(jq -r '.messages[0].plan.height // empty' "$PROPOSALS_DIR/proposals/$PROPOSAL_FILE")
+  if ! [[ "$HEIGHT" =~ ^[0-9]+$ ]]; then
+    echo "error: invalid upgrade height '${HEIGHT}' in ${PROPOSAL_FILE}" >&2
+    exit 1
+  fi
   PROPOSAL_FOUND=true
   echo "  Proposal: ${PROPOSAL}"
   echo "  Height: ${HEIGHT}"
