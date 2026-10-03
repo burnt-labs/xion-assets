@@ -47,6 +47,11 @@
       "logo": "https://raw.githubusercontent.com/cosmos/chain-registry/master/xion/images/burnt-round.png"
     },
     {
+      "base": "factory/xion17grq736740r70awldugfs3mls3stu9haewctv2/verusd",
+      "symbol": "verUSD",
+      "exponent": "6"
+    },
+    {
       "base": "ibc/0471F1C4E7AFD3F07702BEF6DC365268D64570F7C1FDC98EA6098DD6DE59817B",
       "symbol": "OSMO",
       "exponent": "6",
