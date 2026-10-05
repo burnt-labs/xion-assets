@@ -65,6 +65,7 @@
       "base": "factory/xion17grq736740r70awldugfs3mls3stu9haewctv2/verusd",
       "name": "Verona USD",
       "display": "verUSD",
+      "coingecko_id": "stable-coin-2",
       "symbol": "verUSD",
       "keywords": [
         "stablecoin"
