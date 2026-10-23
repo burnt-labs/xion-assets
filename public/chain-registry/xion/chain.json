@@ -42,39 +42,43 @@
   },
   "codebase": {
     "git_repo": "https://github.com/burnt-labs/xion",
-    "tag": "v30.0.0",
-    "recommended_version": "v30.0.0",
+    "tag": "v32.0.0",
+    "recommended_version": "v32.0.0",
     "language": {
       "type": "go",
-      "version": "v1.25.3"
+      "version": "v1.26.10"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v30.0.0/xiond_v30.0.0_darwin_amd64.tar.gz?checksum=sha256:06564d41f0da4a37c7c4f6a40809699bcf208b47d62a493a336eb74cb0fb8f54",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v30.0.0/xiond_v30.0.0_darwin_arm64.tar.gz?checksum=sha256:84b0ef5bdb21cccd518eeb2fd97ee6f2933de8b38f36e53fa034b970833d47b2",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v30.0.0/xiond_v30.0.0_linux_amd64.tar.gz?checksum=sha256:e723661ce690868410ebf995efb84c26d8b418992ef2d475ab7f27cd969000ae",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v30.0.0/xiond_v30.0.0_linux_arm64.tar.gz?checksum=sha256:fb470639317ef4fc04082afb3ba667f108ea8c2a2c41d122781e8191134076a3"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_darwin_amd64.tar.gz?checksum=sha256:97e3b4c0221521a4c738cacb696dabc56b1d99e8d53559ad2bb3b3a3a0f8599b",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_darwin_arm64.tar.gz?checksum=sha256:3f75bd57c05710bba2628111ddb787359f11b9141d46ebc0fc9ca1ca22777a2d",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_linux_amd64.tar.gz?checksum=sha256:4a2e585553c8f48554903e5dda58daa95c7745b33abfa4870619296b3044cdcd",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_linux_arm64.tar.gz?checksum=sha256:92513f4b79e56a82745c5b13b13f362ae0bc4bc33f433a735eec78644bfb502b"
     },
     "sdk": {
       "type": "cosmos",
-      "version": "v0.53.6"
+      "version": "v0.55.0"
     },
     "consensus": {
       "type": "cometbft",
-      "version": "v0.38.21"
+      "version": "v0.40.0"
     },
     "cosmwasm": {
-      "version": "v0.61.10",
+      "version": "v0.70.5",
+      "repo": "https://github.com/burnt-labs/wasmd",
+      "tag": "v0.70.5-xion.4",
       "enabled": true
     },
     "ibc": {
       "type": "go",
-      "version": "v10.5.0"
+      "version": "v11",
+      "repo": "https://github.com/cosmos/ibc-go",
+      "tag": "v11.0.0-20261019144822-2757a8778d05"
     },
     "genesis": {
       "genesis_url": "https://raw.githubusercontent.com/burnt-labs/xion-mainnet-1/main/config/genesis.json"
     },
     "compatible_versions": [
-      "v28.1.0"
+      "v32.0.0"
     ]
   },
   "peers": {
