@@ -594,7 +594,7 @@
       "compatible_versions": [
         "v32.0.0"
       ],
-      "height": 24718174,
+      "height": 24718000,
       "proposal": 64,
       "language": {
         "type": "go",
