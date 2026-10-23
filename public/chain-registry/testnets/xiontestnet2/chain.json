@@ -56,10 +56,10 @@
       "version": "v1.26.10"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_v32.0.0-rc1_darwin_amd64.tar.gz?checksum=sha256:d5ab0368ab1c83bc4718256bb1befaebfa1587acfac2ba2418d50ecb498e3692",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_v32.0.0-rc1_darwin_arm64.tar.gz?checksum=sha256:dee87c4647c7444e0d4126386c82a016d819a0ccbb391aa89a8ca941f3c0d1c1",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_v32.0.0-rc1_linux_amd64.tar.gz?checksum=sha256:d79f8fff06071db7d1630e902e41bdc309506829bd16ed4d5801886ff55cedac",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_v32.0.0-rc1_linux_arm64.tar.gz?checksum=sha256:b64a5a449d2c7b52de300a7edc68069e6f28ea883d6b23e1ed4b7178146d93c3"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_32.0.0-rc1_darwin_amd64.tar.gz?checksum=sha256:d5ab0368ab1c83bc4718256bb1befaebfa1587acfac2ba2418d50ecb498e3692",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_32.0.0-rc1_darwin_arm64.tar.gz?checksum=sha256:dee87c4647c7444e0d4126386c82a016d819a0ccbb391aa89a8ca941f3c0d1c1",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_32.0.0-rc1_linux_amd64.tar.gz?checksum=sha256:d79f8fff06071db7d1630e902e41bdc309506829bd16ed4d5801886ff55cedac",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0-rc1/xiond_32.0.0-rc1_linux_arm64.tar.gz?checksum=sha256:b64a5a449d2c7b52de300a7edc68069e6f28ea883d6b23e1ed4b7178146d93c3"
     },
     "sdk": {
       "type": "cosmos",
@@ -70,12 +70,16 @@
       "version": "v0.40.0"
     },
     "cosmwasm": {
-      "version": "v0.70.4",
+      "version": "v0.70.5",
+      "repo": "https://github.com/burnt-labs/wasmd",
+      "tag": "v0.70.5-xion.4",
       "enabled": true
     },
     "ibc": {
       "type": "go",
-      "version": "v11.0.0-20261019144822-2757a8778d05"
+      "version": "v11",
+      "repo": "https://github.com/cosmos/ibc-go",
+      "tag": "v11.0.0-20261019144822-2757a8778d05"
     },
     "genesis": {
       "genesis_url": "https://raw.githubusercontent.com/burnt-labs/xion-testnet-2/main/config/genesis.json"
@@ -89,7 +93,7 @@
       {
         "id": "20e1000e88125698264454a884812746c2eb4807",
         "address": "testnet-seeds.lavenderfive.com:22356",
-        "provider": "Lavender.Five Nodes 🐝"
+        "provider": "Lavender.Five Nodes \ud83d\udc1d"
       },
       {
         "id": "ade4d8bc8cbe014af6ebdf3cb7b1e9ad36f412c0",
@@ -134,11 +138,11 @@
     "rpc": [
       {
         "address": "https://rpc.xion-testnet-2.burnt.com:443",
-        "provider": "🔥BurntLabs🔥"
+        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
       },
       {
         "address": "https://testnet-2-rpc.xion-api.com:443",
-        "provider": "Lavender.Five Nodes 🐝"
+        "provider": "Lavender.Five Nodes \ud83d\udc1d"
       },
       {
         "address": "https://xion-testnet-rpc.polkachu.com:443",
@@ -152,11 +156,11 @@
     "rest": [
       {
         "address": "https://api.xion-testnet-2.burnt.com",
-        "provider": "🔥BurntLabs🔥"
+        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
       },
       {
         "address": "https://testnet-2-api.xion-api.com",
-        "provider": "Lavender.Five Nodes 🐝"
+        "provider": "Lavender.Five Nodes \ud83d\udc1d"
       },
       {
         "address": "https://xion-testnet-api.polkachu.com",
@@ -170,11 +174,11 @@
     "grpc": [
       {
         "address": "grpc.xion-testnet-2.burnt.com:443",
-        "provider": "🔥BurntLabs🔥"
+        "provider": "\ud83d\udd25BurntLabs\ud83d\udd25"
       },
       {
         "address": "testnet-2-grpc.xion-api.com:443",
-        "provider": "Lavender.Five Nodes 🐝"
+        "provider": "Lavender.Five Nodes \ud83d\udc1d"
       },
       {
         "address": "xion-testnet-grpc.polkachu.com:22390",
