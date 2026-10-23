@@ -586,6 +586,35 @@
         "type": "go",
         "version": "v10.5.0"
       }
+    },
+    {
+      "name": "v31",
+      "recommended_version": "v31.0.0",
+      "compatible_versions": [
+        "v31.0.0"
+      ],
+      "height": 23972161,
+      "proposal": 63,
+      "language": {
+        "type": "go",
+        "version": "v1.25.14"
+      },
+      "sdk": {
+        "type": "cosmos",
+        "version": "v0.53.8"
+      },
+      "consensus": {
+        "type": "cometbft",
+        "version": "v0.38.26"
+      },
+      "cosmwasm": {
+        "version": "v0.61.14",
+        "enabled": true
+      },
+      "ibc": {
+        "type": "go",
+        "version": "v10.7.0"
+      }
     }
   ]
 }
