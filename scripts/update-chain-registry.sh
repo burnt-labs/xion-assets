@@ -190,11 +190,19 @@ BINARIES=$(jq -n \
   '{"darwin/amd64": $darwin_amd64, "darwin/arm64": $darwin_arm64,
     "linux/amd64": $linux_amd64, "linux/arm64": $linux_arm64}')
 
+# codebase.compatible_versions follows this major's versions.json entry (computed
+# the same way the versions.json rewrite below does): just this tag for a new
+# major, plus the earlier compatible versions for a patch release.
+COMPATIBLE=$(jq -c --arg name "$MAJOR_VERSION" --arg tag "$TAG_NAME" \
+  '(first(.versions[] | select(.name == $name)).compatible_versions // []) + [$tag] | unique' \
+  "$REGISTRY_DIR/versions.json")
+
 # Each dependency object is replaced as a whole (version, repo, tag), so a fork
 # or pseudo-version recorded for an earlier release can't linger; other keys
 # (type, enabled, ics_enabled, path) are kept.
 jq "${JQ_FLAGS_CHAIN[@]}" \
    --arg tag "$TAG_NAME" \
+   --argjson compatible "$COMPATIBLE" \
    --arg go_version "$GO_VERSION" \
    --argjson sdk "$SDK_DEP" \
    --argjson cometbft "$COMETBFT_DEP" \
@@ -207,6 +215,7 @@ jq "${JQ_FLAGS_CHAIN[@]}" \
                          + $dep + ($old | del(.type, .version, .repo, .tag)));
     .codebase.tag = $tag |
     .codebase.recommended_version = $tag |
+    .codebase.compatible_versions = $compatible |
     .codebase.language.version = $go_version |
     .codebase.binaries = $binaries |
     setdep("sdk"; $sdk; "cosmos") |
