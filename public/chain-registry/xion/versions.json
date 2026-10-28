@@ -615,6 +615,46 @@
         "type": "go",
         "version": "v10.7.0"
       }
+    },
+    {
+      "name": "v32",
+      "tag": "v32.0.0",
+      "recommended_version": "v32.0.0",
+      "compatible_versions": [
+        "v32.0.0"
+      ],
+      "height": 24718000,
+      "proposal": 64,
+      "language": {
+        "type": "go",
+        "version": "v1.26.10"
+      },
+      "binaries": {
+        "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_darwin_amd64.tar.gz?checksum=sha256:97e3b4c0221521a4c738cacb696dabc56b1d99e8d53559ad2bb3b3a3a0f8599b",
+        "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_darwin_arm64.tar.gz?checksum=sha256:3f75bd57c05710bba2628111ddb787359f11b9141d46ebc0fc9ca1ca22777a2d",
+        "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_linux_amd64.tar.gz?checksum=sha256:4a2e585553c8f48554903e5dda58daa95c7745b33abfa4870619296b3044cdcd",
+        "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.0/xiond_32.0.0_linux_arm64.tar.gz?checksum=sha256:92513f4b79e56a82745c5b13b13f362ae0bc4bc33f433a735eec78644bfb502b"
+      },
+      "sdk": {
+        "type": "cosmos",
+        "version": "v0.55.0"
+      },
+      "consensus": {
+        "type": "cometbft",
+        "version": "v0.40.0"
+      },
+      "cosmwasm": {
+        "version": "v0.70.5",
+      "repo": "https://github.com/burnt-labs/wasmd",
+      "tag": "v0.70.5-xion.4",
+        "enabled": true
+      },
+      "ibc": {
+        "type": "go",
+        "version": "v11",
+      "repo": "https://github.com/cosmos/ibc-go",
+      "tag": "v11.0.0-20261019144822-2757a8778d05"
+      }
     }
   ]
 }
