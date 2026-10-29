@@ -56,10 +56,10 @@
       "version": "v1.26.10"
     },
     "binaries": {
-      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_v32.0.1-rc1_darwin_amd64.tar.gz?checksum=sha256:6c5006ed1dd52fb5acf7aa5a377af22c2da93a3d3348db1e575353efc93a8365",
-      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_v32.0.1-rc1_darwin_arm64.tar.gz?checksum=sha256:836ef1a83ed5307951e4fbc4cbd827c68769d0a9c4908f8ba829e31057628ba7",
-      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_v32.0.1-rc1_linux_amd64.tar.gz?checksum=sha256:65143455e2f93e3694890dfd8ab569f49b1fbfb2a9b55610d0c4f7dab79e2dd1",
-      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_v32.0.1-rc1_linux_arm64.tar.gz?checksum=sha256:feb0073fcfa288c4763c2cd87ed5b7b72a7e30ed7f9cf1957914995a5bfb688c"
+      "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_32.0.1-rc1_darwin_amd64.tar.gz?checksum=sha256:6c5006ed1dd52fb5acf7aa5a377af22c2da93a3d3348db1e575353efc93a8365",
+      "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_32.0.1-rc1_darwin_arm64.tar.gz?checksum=sha256:836ef1a83ed5307951e4fbc4cbd827c68769d0a9c4908f8ba829e31057628ba7",
+      "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_32.0.1-rc1_linux_amd64.tar.gz?checksum=sha256:65143455e2f93e3694890dfd8ab569f49b1fbfb2a9b55610d0c4f7dab79e2dd1",
+      "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v32.0.1-rc1/xiond_32.0.1-rc1_linux_arm64.tar.gz?checksum=sha256:feb0073fcfa288c4763c2cd87ed5b7b72a7e30ed7f9cf1957914995a5bfb688c"
     },
     "sdk": {
       "type": "cosmos",
@@ -70,14 +70,14 @@
       "version": "v0.40.0"
     },
     "cosmwasm": {
-      "version": "v0.70.4",
+      "version": "v0.70.5",
       "repo": "https://github.com/burnt-labs/wasmd",
       "tag": "v0.70.5-xion.4",
       "enabled": true
     },
     "ibc": {
       "type": "go",
-      "version": "v11.0.0-20261019144822-2757a8778d05",
+      "version": "v11",
       "repo": "https://github.com/cosmos/ibc-go",
       "tag": "v11.0.0-20261019144822-2757a8778d05"
     },
@@ -85,7 +85,8 @@
       "genesis_url": "https://raw.githubusercontent.com/burnt-labs/xion-testnet-2/main/config/genesis.json"
     },
     "compatible_versions": [
-      "v32.0.0-rc1"
+      "v32.0.0-rc1",
+      "v32.0.1-rc1"
     ]
   },
   "peers": {
