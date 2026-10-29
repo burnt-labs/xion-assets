@@ -23,7 +23,10 @@ const version = versions.versions.find(
 );
 
 describe.each([
-  ["chain.json codebase", chain.codebase],
+  // Release fixtures remain valid after a later recommendation is selected.
+  ...(chain.codebase.tag === tag
+    ? [["chain.json codebase", chain.codebase]]
+    : []),
   ["versions.json release", version],
 ])("%s", (_name, metadata) => {
   it.each(Object.entries(checksums))(
@@ -60,8 +63,17 @@ describe.each([
   });
 });
 
-it("keeps codebase compatibility aligned with the selected release", () => {
+it("keeps codebase compatibility aligned with its recommended release", () => {
+  const recommended = versions.versions.find(
+    (entry: { tag: string }) =>
+      entry.tag === chain.codebase.recommended_version,
+  );
+  expect(recommended).toBeDefined();
+  expect(chain.codebase.tag).toBe(recommended.tag);
+  expect(chain.codebase.compatible_versions).toContain(
+    chain.codebase.recommended_version,
+  );
   expect(chain.codebase.compatible_versions).toEqual(
-    version.compatible_versions,
+    recommended.compatible_versions,
   );
 });
