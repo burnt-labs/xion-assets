@@ -10,7 +10,7 @@ on:
 jobs:
   get-latest-versions:
     name: Get Latest Package Versions
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     outputs:
       deb_version: ${{ steps.get-versions.outputs.deb_version }}
       rpm_version: ${{ steps.get-versions.outputs.rpm_version }}
@@ -68,7 +68,7 @@ jobs:
 
   test-deb:
     name: Test DEB Package (apt)
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs: get-latest-versions
     env:
       DEB_VERSION: ${{ needs.get-latest-versions.outputs.deb_version }}
@@ -113,7 +113,7 @@ jobs:
 
   test-rpm:
     name: Test RPM Package (yum)
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs: get-latest-versions
     env:
       RPM_VERSION: ${{ needs.get-latest-versions.outputs.rpm_version }}
@@ -162,7 +162,7 @@ jobs:
 
   test-apk:
     name: Test APK Package (apk)
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs: get-latest-versions
     env:
       APK_VERSION: ${{ needs.get-latest-versions.outputs.apk_version }}
@@ -207,7 +207,7 @@ jobs:
 
   notify-slack:
     name: Notify Slack
-    runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     needs: [get-latest-versions, test-deb, test-rpm, test-apk]
     if: always()
     steps:
