@@ -645,15 +645,51 @@
       },
       "cosmwasm": {
         "version": "v0.70.5",
-      "repo": "https://github.com/burnt-labs/wasmd",
-      "tag": "v0.70.5-xion.4",
+        "repo": "https://github.com/burnt-labs/wasmd",
+        "tag": "v0.70.5-xion.4",
         "enabled": true
       },
       "ibc": {
         "type": "go",
         "version": "v11",
-      "repo": "https://github.com/cosmos/ibc-go",
-      "tag": "v11.0.0-20261019144822-2757a8778d05"
+        "repo": "https://github.com/cosmos/ibc-go",
+        "tag": "v11.0.0-20261019144822-2757a8778d05"
+      }
+    },
+    {
+      "name": "v33",
+      "tag": "v33.0.0",
+      "recommended_version": "v33.0.0",
+      "compatible_versions": [
+        "v33.0.0"
+      ],
+      "height": 0,
+      "proposal": 0,
+      "language": {
+        "type": "go",
+        "version": "v1.26.10"
+      },
+      "binaries": {
+        "darwin/amd64": "https://github.com/burnt-labs/xion/releases/download/v33.0.0/xiond_v33.0.0_darwin_amd64.tar.gz?checksum=sha256:",
+        "darwin/arm64": "https://github.com/burnt-labs/xion/releases/download/v33.0.0/xiond_v33.0.0_darwin_arm64.tar.gz?checksum=sha256:",
+        "linux/amd64": "https://github.com/burnt-labs/xion/releases/download/v33.0.0/xiond_v33.0.0_linux_amd64.tar.gz?checksum=sha256:",
+        "linux/arm64": "https://github.com/burnt-labs/xion/releases/download/v33.0.0/xiond_v33.0.0_linux_arm64.tar.gz?checksum=sha256:"
+      },
+      "sdk": {
+        "type": "cosmos",
+        "version": "v0.55.0"
+      },
+      "consensus": {
+        "type": "cometbft",
+        "version": "v0.40.0"
+      },
+      "cosmwasm": {
+        "version": "v0.70.4",
+        "enabled": true
+      },
+      "ibc": {
+        "type": "go",
+        "version": "v11.0.0-20261019144822-2757a8778d05"
       }
     }
   ]
