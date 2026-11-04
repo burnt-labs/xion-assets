@@ -121,7 +121,7 @@ jobs:
 
           ### Release Details
           - **Tag**: ${TAG_NAME}
-          - **Release**: ${RELEASE_NAME}
+          - **Release**: [${RELEASE_NAME:-${TAG_NAME}}](https://github.com/burnt-labs/xion/releases/tag/${TAG_NAME})
           - **Cosmos SDK**: ${SDK_VERSION}
           - **CometBFT**: ${COMETBFT_VERSION}
           - **CosmWasm**: ${WASMD_VERSION}

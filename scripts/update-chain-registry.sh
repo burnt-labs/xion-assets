@@ -56,6 +56,17 @@ file_indent() {
   echo $(( n > 1 ? n - 1 : 2 ))
 }
 
+# jq flags that rewrite a file in its own style: its indentation, and ASCII
+# output (-a) when the file is pure ASCII, i.e. keeps non-ASCII characters
+# such as the provider emoji as \u escapes (testnet chain.json does).
+jq_style() {
+  local flags=(--indent "$(file_indent "$1")")
+  LC_ALL=C grep -q '[^[:print:][:space:]]' "$1" || flags+=(-a)
+  printf '%s\n' "${flags[@]}"
+}
+mapfile -t JQ_FLAGS_CHAIN < <(jq_style "$REGISTRY_DIR/chain.json")
+mapfile -t JQ_FLAGS_VERSIONS < <(jq_style "$REGISTRY_DIR/versions.json")
+
 # --- Checksums for the release binaries -------------------------------------
 echo "Downloading checksums for ${TAG_NAME}..."
 curl -fsSL -o "$WORKDIR/checksums.txt" \
@@ -79,17 +90,56 @@ done
 curl -fsSL -o "$WORKDIR/go.mod" \
   "https://raw.githubusercontent.com/burnt-labs/xion/${TAG_NAME}/go.mod"
 
-gomod() { (cd "$WORKDIR" && go mod edit -json) | jq -r "$1"; }
-SDK_VERSION=$(gomod '.Require[] | select(.Path == "github.com/cosmos/cosmos-sdk") | .Version')
-COMETBFT_VERSION=$(gomod '.Require[] | select(.Path == "github.com/cometbft/cometbft") | .Version')
-WASMD_VERSION=$(gomod '.Require[] | select(.Path == "github.com/CosmWasm/wasmd") | .Version // empty')
-IBC_VERSION=$(gomod 'first(.Require[] | select(.Path | startswith("github.com/cosmos/ibc-go/v")) | select(.Path | contains("light-clients") | not) | select(.Path | contains("capability") | not) | select(.Path | contains("middleware") | not) | .Version) // empty')
-GO_VERSION="v$(gomod '.Go')"
+gomod() { (cd "$WORKDIR" && go mod edit -json) | jq -c "$1"; }
+
+# dep(select) -> the registry object for one dependency: {version} for a plain
+# upstream release, or {version, repo, tag} when the build uses something else.
+# The chain-registry schema only allows a simple version (^v?\d+(\.\d+){0,2}$),
+# so the exact module version goes in "tag":
+#   - a replace directive (our forks, e.g. burnt-labs/wasmd v0.70.5-xion.4):
+#     version v0.70.5, repo = the fork, tag = the fork's tag;
+#   - a pseudo-version (an untagged commit, e.g. v11.0.0-20261019144822-2757a8778d05):
+#     version = the major line (v11), tag = the pseudo-version;
+#   - a pre-release (v0.55.0-rc.1): version v0.55.0, tag = the pre-release.
+# The go.mod require line alone is wrong whenever a replace directive applies.
+# shellcheck disable=SC2016 # jq program, not shell expansions
+DEP_JQ='
+def dep(sel):
+  (first(.Require[]? | select(.Path | sel)) // null) as $req
+  | if $req == null then null else
+      (first(.Replace[]? | select(.Old.Path == $req.Path and (.Old.Version == null or .Old.Version == $req.Version))) // null) as $rep
+      | if $rep != null and $rep.New.Version == null then error("\($req.Path) is replaced by a local path") else . end
+      | ($rep.New.Path // $req.Path) as $path
+      | ($rep.New.Version // $req.Version) as $ver
+      | ("https://" + ($path | sub("/v[0-9]+$"; ""))) as $repo
+      | ($ver | capture("^(?<core>v[0-9]+\\.[0-9]+\\.[0-9]+)(?<rest>.*)$")) as $m
+      | if ($ver | test("[0-9]{14}-[0-9a-f]{12}$")) then
+          {version: ($ver | capture("^(?<major>v[0-9]+)").major), repo: $repo, tag: $ver}
+        elif $rep != null or $m.rest != "" then
+          {version: $m.core, repo: $repo, tag: $ver}
+        else
+          {version: $ver}
+        end
+    end;
+'
+SDK_DEP=$(gomod "$DEP_JQ"'dep(. == "github.com/cosmos/cosmos-sdk")')
+COMETBFT_DEP=$(gomod "$DEP_JQ"'dep(. == "github.com/cometbft/cometbft")')
+WASMD_DEP=$(gomod "$DEP_JQ"'dep(. == "github.com/CosmWasm/wasmd")')
+IBC_DEP=$(gomod "$DEP_JQ"'dep(startswith("github.com/cosmos/ibc-go/v") and (contains("light-clients") | not) and (contains("capability") | not) and (contains("middleware") | not))')
+GO_VERSION="v$(gomod '.Go' | jq -r .)"
 
 # Registry files must never carry empty/placeholder versions — fail loudly instead.
-for v in SDK_VERSION COMETBFT_VERSION WASMD_VERSION IBC_VERSION; do
-  [ -n "${!v}" ] || { echo "error: could not extract ${v} from ${TAG_NAME}'s go.mod" >&2; exit 1; }
+for v in SDK_DEP COMETBFT_DEP WASMD_DEP IBC_DEP; do
+  [ -n "${!v}" ] && [ "${!v}" != null ] || { echo "error: could not extract ${v} from ${TAG_NAME}'s go.mod" >&2; exit 1; }
 done
+
+# One line per dependency for logs and the PR body: the exact module version,
+# plus the repo when it isn't a plain upstream release.
+dep_detail() { jq -r 'if .tag then "\(.tag) (\(.repo | ltrimstr("https://")))" else .version end' <<<"$1"; }
+SDK_VERSION=$(dep_detail "$SDK_DEP")
+COMETBFT_VERSION=$(dep_detail "$COMETBFT_DEP")
+WASMD_VERSION=$(dep_detail "$WASMD_DEP")
+IBC_VERSION=$(dep_detail "$IBC_DEP")
 
 echo "Extracted versions:"
 echo "  SDK: ${SDK_VERSION}"
@@ -140,22 +190,38 @@ BINARIES=$(jq -n \
   '{"darwin/amd64": $darwin_amd64, "darwin/arm64": $darwin_arm64,
     "linux/amd64": $linux_amd64, "linux/arm64": $linux_arm64}')
 
-jq --indent "$(file_indent "$REGISTRY_DIR/chain.json")" \
+# codebase.compatible_versions follows this major's versions.json entry (computed
+# the same way the versions.json rewrite below does): just this tag for a new
+# major, plus the earlier compatible versions for a patch release.
+COMPATIBLE=$(jq -c --arg name "$MAJOR_VERSION" --arg tag "$TAG_NAME" \
+  '(first(.versions[] | select(.name == $name)).compatible_versions // []) + [$tag] | unique' \
+  "$REGISTRY_DIR/versions.json")
+
+# Each dependency object is replaced as a whole (version, repo, tag), so a fork
+# or pseudo-version recorded for an earlier release can't linger; other keys
+# (type, enabled, ics_enabled, path) are kept.
+jq "${JQ_FLAGS_CHAIN[@]}" \
    --arg tag "$TAG_NAME" \
+   --argjson compatible "$COMPATIBLE" \
    --arg go_version "$GO_VERSION" \
-   --arg sdk_version "$SDK_VERSION" \
-   --arg cometbft_version "$COMETBFT_VERSION" \
-   --arg wasmd_version "$WASMD_VERSION" \
-   --arg ibc_version "$IBC_VERSION" \
+   --argjson sdk "$SDK_DEP" \
+   --argjson cometbft "$COMETBFT_DEP" \
+   --argjson wasmd "$WASMD_DEP" \
+   --argjson ibc "$IBC_DEP" \
    --argjson binaries "$BINARIES" \
-   '.codebase.tag = $tag |
+   'def setdep($k; $dep; $type):
+      (.codebase[$k] // {}) as $old
+      | .codebase[$k] = ((if $type == null then {} else {type: ($old.type // $type)} end)
+                         + $dep + ($old | del(.type, .version, .repo, .tag)));
+    .codebase.tag = $tag |
     .codebase.recommended_version = $tag |
+    .codebase.compatible_versions = $compatible |
     .codebase.language.version = $go_version |
     .codebase.binaries = $binaries |
-    .codebase.sdk.version = $sdk_version |
-    .codebase.consensus.version = $cometbft_version |
-    .codebase.cosmwasm.version = $wasmd_version |
-    .codebase.ibc.version = $ibc_version' \
+    setdep("sdk"; $sdk; "cosmos") |
+    setdep("consensus"; $cometbft; "cometbft") |
+    setdep("cosmwasm"; $wasmd; null) |
+    setdep("ibc"; $ibc; "go")' \
    "$REGISTRY_DIR/chain.json" > "$WORKDIR/chain.json"
 mv "$WORKDIR/chain.json" "$REGISTRY_DIR/chain.json"
 echo "Updated $REGISTRY_DIR/chain.json"
@@ -169,10 +235,10 @@ ENTRY=$(jq -n \
   --arg name "$MAJOR_VERSION" \
   --arg tag "$TAG_NAME" \
   --arg go_version "$GO_VERSION" \
-  --arg sdk_version "$SDK_VERSION" \
-  --arg cometbft_version "$COMETBFT_VERSION" \
-  --arg wasmd_version "$WASMD_VERSION" \
-  --arg ibc_version "$IBC_VERSION" \
+  --argjson sdk "$SDK_DEP" \
+  --argjson cometbft "$COMETBFT_DEP" \
+  --argjson wasmd "$WASMD_DEP" \
+  --argjson ibc "$IBC_DEP" \
   --argjson binaries "$BINARIES" \
   --argjson height "$HEIGHT" \
   --argjson proposal "$PROPOSAL" \
@@ -180,12 +246,12 @@ ENTRY=$(jq -n \
     compatible_versions: [$tag], height: $height, proposal: $proposal,
     language: {type: "go", version: $go_version},
     binaries: $binaries,
-    sdk: {type: "cosmos", version: $sdk_version},
-    consensus: {type: "cometbft", version: $cometbft_version},
-    cosmwasm: {version: $wasmd_version, enabled: true},
-    ibc: {type: "go", version: $ibc_version}}')
+    sdk: ({type: "cosmos"} + $sdk),
+    consensus: ({type: "cometbft"} + $cometbft),
+    cosmwasm: ($wasmd + {enabled: true}),
+    ibc: ({type: "go"} + $ibc)}')
 
-jq --indent "$(file_indent "$REGISTRY_DIR/versions.json")" \
+jq "${JQ_FLAGS_VERSIONS[@]}" \
    --arg name "$MAJOR_VERSION" \
    --argjson entry "$ENTRY" \
    'if (.versions | any(.name == $name)) then
